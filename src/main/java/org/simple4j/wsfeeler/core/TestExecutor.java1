@@ -1,0 +1,698 @@
+package org.simple4j.wsfeeler.core;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.simple4j.wsclient.caller.Caller;
+import org.simple4j.wsclient.formatter.impl.SimpleFormatter;
+import org.simple4j.wsclient.http.HTTPWSClient;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import bsh.EvalError;
+import bsh.Interpreter;
+
+
+public class TestExecutor {
+
+    private static Logger logger = Logger.getLogger(TestExecutor.class);
+
+    private static String basePath = "/ws-suite";
+    private static String globalPath = basePath+"/global";
+    private static String testcasesPath = basePath+"/testcases";
+    private static Map<String, ? extends Object> globalVariables = new HashMap<String, Object>();
+
+    private static HashMap<File, HTTPWSClient> httpWSClientCache = new HashMap<File, HTTPWSClient>();
+
+    private static HashMap<File, Connection> connectionCache = new HashMap<File, Connection>();
+
+    private static HashMap<File, Caller> callerCache = new HashMap<File, Caller>();
+
+    private static int testcaseExecutionCount = 0;
+
+    private static List<File> failedTestCases = new ArrayList<File>();
+
+    private static List<File> failedTestSteps = new ArrayList<File>();
+
+    /**
+     * used to load request.properties, assertion.template
+     */
+    private static SimpleFormatter formatter = null;
+
+    private static String includesTestCases = null;
+
+    private static String excludesTestCases = null;
+
+    /**
+    * @param args
+    * @throws IOException
+    * @throws EvalError
+    */
+    public static void main(String[] args) throws IOException, EvalError {
+        executeTestSuite();
+    }
+
+    public static String executeTestSuite() throws IOException, EvalError {
+        return executeTestSuite("{", "}");
+    }
+
+    public static String executeTestSuite(String formatterBeginTokenString, String formatterEndTokenString) throws IOException, EvalError {
+        InputStream variablesStream = null;
+        try
+        {
+            variablesStream = TestExecutor.class.getResourceAsStream(globalPath+"/variables.properties");
+            if(variablesStream == null)
+            {
+                logger.error("InputSteam is null when loading from classpath:"+globalPath+"/variables.properties");
+                return "InputSteam is null when loading from classpath:"+globalPath+"/variables.properties";
+            }
+            globalVariables = loadVariables(variablesStream, globalVariables);
+
+            File includesExcludesFile = getTestSuiteFile(testcasesPath+"/includes-excludes.properties");
+            if(includesExcludesFile.exists())
+            {
+                Map<String, String> includesExcludesMap = loadProperties(includesExcludesFile);
+                includesTestCases = includesExcludesMap.get("includes");
+                excludesTestCases = includesExcludesMap.get("excludes");
+            }
+            
+            String templateString = null;
+            formatter = new SimpleFormatter();
+            formatter.setBeginTokenString(formatterBeginTokenString);
+            formatter.setEndTokenString(formatterEndTokenString);
+			formatter.setTemplateString(templateString);
+			formatter.setInputObjectPropertyToTemplateVariableMapping(mapping);
+			formatter.formatData("");
+
+			File testcasesDir = getTestSuiteFile(testcasesPath);
+            File[] testcaseDirs = testcasesDir.listFiles();
+            List<File> sortedTestcaseDirs = sortFiles(testcaseDirs);
+            //Intentionally using the length from array for performance
+            for (int i = 0; i < testcaseDirs.length; i++) {
+                logger.info("Processing :"+sortedTestcaseDirs.get(i));
+                if(sortedTestcaseDirs.get(i).isDirectory())
+                {
+                    boolean testResultSuccess = executeTestcase(sortedTestcaseDirs.get(i), globalVariables);
+                    if(!testResultSuccess)
+                    {
+                        logger.info("FAILURE: Testcase "+sortedTestcaseDirs.get(i));
+                    }
+                }
+            }
+
+            if(failedTestCases.size() == 0 && failedTestSteps.size() == 0)
+            {
+                logger.info("TEST SUMMARY: All "+testcaseExecutionCount+" testcases succeeded.");
+                return null;
+            }
+            else
+            {
+                logger.error("Failed test cases are...");
+                for (Iterator<File> iterator = failedTestCases.iterator(); iterator
+                        .hasNext();) {
+                    File failedTestCaseDir = (File) iterator.next();
+                    logger.error(failedTestCaseDir);
+                }
+                logger.error("Failed test steps are...");
+                for (Iterator<File> iterator = failedTestSteps.iterator(); iterator
+                        .hasNext();) {
+                    File failedTestStepRequest = (File) iterator.next();
+                    logger.error(failedTestStepRequest);
+                }
+                logger.error("TEST SUMMARY: "+failedTestCases.size()+"/"+testcaseExecutionCount +" failed");
+                return "TEST SUMMARY: "+failedTestCases.size()+"/"+testcaseExecutionCount +" failed";
+            }
+        }
+        finally
+        {
+            if(connectionCache.size() > 0 )
+            {
+                for (Entry<File, Connection> connectionEntry : connectionCache.entrySet()) {
+                    try {
+                        connectionEntry.getValue().close();
+                    } catch (SQLException e) {
+                        logger.error("",e);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Used to load global/variables.properties, <testcase>/variable.properties, request.properties,
+     * @param variablesStream
+     * @param globalVariables2
+     * @return
+     * @throws IOException
+     * @throws EvalError
+     */
+    private static Map<String, ? extends Object> loadVariables(InputStream variablesStream, Map<String, ? extends Object> globalVariables2)
+            throws IOException, EvalError {
+    	try
+    	{
+        Properties loadedVariables= new Properties();
+        loadedVariables.load(variablesStream);
+        Map<String, ? extends Object> ret = new HashMap<String, Object>();
+        if(globalVariables2 != null)
+        {
+            ret.putAll(globalVariables2);
+        }
+
+        Interpreter bsh = new Interpreter();
+        if(globalVariables2 != null)
+        {
+            for (Entry<String, ? extends Object> entry : globalVariables2.entrySet()) {
+                bsh.set(entry.getKey(), entry.getValue());
+            }
+        }
+        ArrayList sortedKeys = new ArrayList(loadedVariables.keySet());
+        Collections.sort(sortedKeys);
+
+        for (Iterator iterator = sortedKeys.iterator(); iterator.hasNext();) {
+            String key = (String) iterator.next();
+
+            logger.debug("processing key:"+key);
+
+            Object eval;
+            try {
+                eval = bsh.eval(""+loadedVariables.getProperty(key));
+            } catch (EvalError e) {
+                if(e.getMessage().contains("number too big for integer type"))
+                {
+                    eval = bsh.eval("\""+loadedVariables.getProperty(key)+"\"");
+                }
+                else
+                    throw e;
+            }
+            logger.debug("evaluated value:"+eval);
+            if(eval != null)
+            {
+                ret.put(""+key, eval);
+                bsh.set(""+key, eval);
+                logger.debug("set evaluated:"+key+":"+eval);
+            }
+            else
+            {
+                ret.put(""+key, loadedVariables.getProperty(key));
+                bsh.set(""+key, loadedVariables.getProperty(key));
+                logger.debug("set unevaluated:"+key+":"+loadedVariables.getProperty(key));
+            }
+
+        }
+
+        return ret;
+    	}
+    	finally
+    	{
+    		if(variablesStream != null)
+    			variablesStream.close();
+    	}
+    }
+
+    private static List<File> sortFiles(File[] testcaseDirs) {
+        List<File> testcaseDirsList = null;
+        if(testcaseDirs != null)
+        {
+            testcaseDirsList = Arrays.asList(testcaseDirs);
+            Comparator<? super File> c = new Comparator<File>() {
+
+                public int compare(File o1, File o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            };
+            Collections.sort(testcaseDirsList, c );
+
+        }
+        return testcaseDirsList;
+    }
+
+    private static boolean executeTestcase(File testcaseDir, Map<String, ? extends Object> globalVariables2) {
+        logger.info("Processing testcase:"+testcaseDir);
+        if(includesTestCases != null && includesTestCases.trim().length()>0)
+        {
+            logger.info("testcaseDir.getAbsolutePath()="+testcaseDir.getAbsolutePath());
+            logger.info("includesTestCases="+includesTestCases);
+            if(!testcaseDir.getAbsolutePath().matches(includesTestCases))
+                return true;
+        }
+
+        if(excludesTestCases != null && excludesTestCases.trim().length()>0)
+        {
+            logger.info("testcaseDir.getAbsolutePath()="+testcaseDir.getAbsolutePath());
+            logger.info("excludesTestCases="+excludesTestCases);
+            if(testcaseDir.getAbsolutePath().matches(excludesTestCases))
+                return true;
+        }
+
+        boolean ret = true;
+        FileInputStream fis = null;
+        try {
+            File variablesFile = new File(testcaseDir, "variables.properties");
+            Map<String, ? extends Object> testcaseVariables = null;
+            if(variablesFile.exists() && variablesFile.isFile())
+            {
+                logger.info("Loading testcase variables from:"+variablesFile);
+                fis = new FileInputStream(variablesFile);
+                testcaseVariables = loadVariables(fis, globalVariables2);
+            }
+            else
+                testcaseVariables = new HashMap<String, Object>(globalVariables2);
+
+            File[] testStepFiles = testcaseDir.listFiles();
+            List<File> sortTestStepFiles = sortFiles(testStepFiles);
+            boolean testcaseCounted = false;
+            for (int i = 0; i < testStepFiles.length; i++) {
+                File testStepFile = sortTestStepFiles.get(i);
+                logger.info("Processing file:"+testStepFile);
+                if(!testStepFile.isDirectory() && testStepFile.getName().endsWith("request.properties"))
+                {
+                    logger.info("Found *request.properties");
+                    if(!testcaseCounted)
+                    {
+                        testcaseCounted=true;
+                        testcaseExecutionCount++;
+                    }
+                    boolean result = executeTestStep(testcaseVariables,
+                            testStepFile);
+                    if(result == false)
+                    {
+                        failedTestCases.add(testcaseDir);
+                        return false;
+                    }
+                }
+                else if(testStepFile.isDirectory())
+                {
+                    boolean subTestCaseResult = executeTestcase(testStepFile, testcaseVariables);
+                    if(subTestCaseResult == false)
+                        ret = false;
+                }
+            }
+
+        } catch (Throwable e) {
+            logger.error("",e);
+            failedTestCases.add(testcaseDir);
+            return false;
+        }
+        return ret;
+
+    }
+
+    private static boolean executeTestStep(
+            Map<String, ? extends Object> testcaseVariables, File testStepRequestFile)
+    {
+        boolean ret = false;
+        try
+        {
+        	FileInputStream fis = new FileInputStream(testStepRequestFile);
+        	Map<String, ? extends Object> requestVariables = loadVariables(fis, testcaseVariables);
+            String typeOfStep = (String) requestVariables.get("TypeOfStep");
+            if(typeOfStep == null || typeOfStep.trim().length() == 0)
+            {
+                logger.error("TypeOfStep missing in file:"+testStepRequestFile);
+            }
+            else
+            {
+
+                if(typeOfStep.equals("WS"))
+                {
+                    ret = executeWSTestStep(testcaseVariables, testStepRequestFile,
+                            requestVariables);
+                }
+
+                if(typeOfStep.equals("DB"))
+                {
+                    ret = executeDBTestStep(testcaseVariables, testStepRequestFile,
+                            requestVariables);
+                }
+
+                if(typeOfStep.equals("LDAP"))
+                {
+                    ret = executeLDAPTestStep(testcaseVariables, testStepRequestFile,
+                            requestVariables);
+                }
+            }
+
+        }
+        catch(Throwable e)
+        {
+            logger.error("", e);
+        }
+
+        if(ret == false)
+            failedTestSteps.add(testStepRequestFile);
+        return ret;
+    }
+
+    private static boolean executeLDAPTestStep(
+            Map<String, String> testcaseVariables, File testStepRequestFile,
+            Map<String, String> requestVariables) {
+        return true;
+    }
+
+    private static boolean executeDBTestStep(
+            Map<String, String> testcaseVariables, File testStepRequestFile,
+            Map<String, String> requestVariables) throws FileNotFoundException, ClassNotFoundException, IOException, SQLException {
+        logger.debug("Inside executeDBTestStep");
+        StringBuffer sb = executeDBQuery(testcaseVariables, requestVariables);
+        File assertionTemplateFile = new File(testStepRequestFile.getParentFile(),testStepRequestFile.getName().replace("request.properties", "assertion.template"));
+        if(assertionTemplateFile.exists())
+        {
+            logger.debug("getting expected result for query.");
+            //TODO: Need to change to freemarker template.
+            String expectedResult = formatter.format(getFileContentAsString(assertionTemplateFile), testcaseVariables);
+            logger.info("expectedResult="+expectedResult);
+            logger.info("actualResult="+sb);
+            boolean assertion = sb.toString().equals(expectedResult);
+            logger.info("assertion for step:"+assertion);
+            return assertion;
+        }
+        logger.debug("returning true from DB step");
+        return true;
+    }
+
+    private static StringBuffer executeDBQuery(
+            Map<String, String> testcaseVariables,
+            Map<String, String> requestVariables)
+            throws ClassNotFoundException, FileNotFoundException, IOException,
+            SQLException {
+        logger.debug("Inside executeDBQuery");
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try
+        {
+
+            File dbConnectionPropertiesFile = getTestSuiteFile(globalPath+requestVariables.get("ConnectionProperties"));
+            conn = getConnection(dbConnectionPropertiesFile);
+            logger.debug("got connection");
+            stmt = conn.createStatement();
+            logger.debug("executing query:"+requestVariables.get("SQL"));
+            boolean selectQuery = stmt.execute(requestVariables.get("SQL"));
+            logger.debug("Query executed:"+selectQuery);
+            if(selectQuery)
+            {
+                rs = stmt.getResultSet();
+                StringBuffer sb = new StringBuffer();
+                int rowCount = 0;
+                while(rs.next())
+                {
+                    logger.debug("row count:"+(++rowCount));
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+                    for(int columnIndex = 1; columnIndex <= columnCount; columnIndex++)
+                    {
+                        logger.debug("columnIndex:"+columnIndex);
+                        String columnValue = rs.getString(columnIndex);
+                        sb.append(columnValue);
+                        if(columnIndex < columnCount)
+                        {
+                            sb.append(",");
+                        }
+                        logger.debug("adding testcasevariable {"+metaData.getColumnName(columnIndex) + ":" + columnValue+"}");
+                        testcaseVariables.put(metaData.getColumnName(columnIndex), columnValue);
+                    }
+                    sb.append(System.getProperty("line.separator"));
+                }
+                return sb;
+            }
+            else
+            {
+                logger.debug("selectQuery is false");
+            }
+            return null;
+        }
+        finally
+        {
+            if(conn != null)
+            {
+                conn.commit();
+            }
+            if(rs!=null)
+                rs.close();
+            if(stmt != null)
+                stmt.close();
+//Deliberately not closing here because the connections are cached and closed at the end of the execution of all testcases
+//            if(conn != null && !conn.isClosed())
+//            {
+//                conn.close();
+//            }
+        }
+    }
+
+    private static Connection getConnection(File dbConnectionPropertiesFile) throws ClassNotFoundException, FileNotFoundException, IOException, SQLException {
+        if(connectionCache.containsKey(dbConnectionPropertiesFile))
+            return connectionCache.get(dbConnectionPropertiesFile);
+
+        logger.debug("creating new connection");
+        Map<String, String> connectionProperties = loadProperties(null, dbConnectionPropertiesFile);
+        String propertyNamePrefix = connectionProperties.get("PropertyNamePrefix");
+        if(propertyNamePrefix == null || propertyNamePrefix.trim().length() == 0)
+            propertyNamePrefix = "";
+        Class.forName(connectionProperties.get(propertyNamePrefix+"DriverClass"));
+        Connection conn = DriverManager.getConnection(connectionProperties.get(propertyNamePrefix+"ConnectionURL"),connectionProperties.get(propertyNamePrefix+"Username"),connectionProperties.get(propertyNamePrefix+"Password"));
+        connectionCache.put(dbConnectionPropertiesFile, conn);
+        return conn;
+    }
+
+    private static boolean executeWSTestStep(
+            Map<String, ? extends Object> testcaseVariables, File testStepRequestFile,
+            Map<String, ? extends Object> requestVariables) throws IOException,
+            FileNotFoundException, UnsupportedEncodingException, EvalError {
+    	String callerBeanId = (String) requestVariables.get("callerBeanId");
+        Caller caller = getCaller(callerBeanId);
+        String testStepName = testStepRequestFile.getName().replace("request.properties", "");
+
+        logger.info("Calling service");
+        Map<String, Object> response = caller.call(requestVariables);
+        logger.info("response from service call:"+response);
+
+        for (Entry<String, Object> entry : response.entrySet()) {
+            testcaseVariables.put(testStepName+"."+entry.getKey(), entry.getValue());
+        }
+
+        File responsePropertiesFile = new File(testStepRequestFile.getParentFile(),testStepRequestFile.getName().replace("request.properties", "response.properties"));
+        String assertionExpression = null;
+        Map<String, String> responseProperties = null;
+        if(responsePropertiesFile.exists())
+        {
+            responseProperties = loadProperties(null, responsePropertiesFile);
+            assertionExpression = responseProperties.get("ASSERT");
+            responseProperties.remove("ASSERT");
+        }
+        if(assertionExpression != null)
+        {
+            Interpreter bsh = new Interpreter();
+            if(testcaseVariables != null)
+            {
+                for (Entry<String, String> entry : testcaseVariables.entrySet()) {
+                    bsh.set(entry.getKey(), entry.getValue());
+                }
+            }
+            Object stepResult = bsh.eval(assertionExpression);
+            if(stepResult instanceof Boolean)
+            {
+                if(!((Boolean)stepResult))
+                {
+                    logger.info("FAILURE: Teststep "+testStepRequestFile +" for assertion "+assertionExpression);
+                    logger.info("Testcase variables are "+testcaseVariables);
+                    return false;
+                }
+            }
+            else
+            {
+                logger.info("FAILURE: Assertion expression "+assertionExpression+" return non-boolean value "+ stepResult + " of type "+stepResult.getClass());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static File getTestSuiteFile(String path) {
+        URL resource = TestExecutor.class.getResource(path);
+        if(resource == null || resource.getFile() == null)
+            return null;
+        return new File(resource.getFile());
+    }
+
+    private static Caller getCaller(String callerBeanId) throws IOException,
+            FileNotFoundException, UnsupportedEncodingException {
+    	
+    	ApplicationContext ac = getWSApplicationContext();
+    	return ac.getBean(callerBeanId, Caller.class);
+    }
+
+    private static ApplicationContext wSApplicationContext = null;
+    private static ApplicationContext getWSApplicationContext()
+	{
+		if(wSApplicationContext == null)
+		{
+			wSApplicationContext = new ClassPathXmlApplicationContext(globalPath+"/WS-AppCntxt.xml");
+		}
+		return wSApplicationContext;
+	}
+
+	private static String getFileContentAsString(File file)
+            throws FileNotFoundException, IOException,
+            UnsupportedEncodingException {
+        FileInputStream fis = null;
+        String newString=null;
+        try
+        {
+            fis = new FileInputStream(file);
+            byte[] b = new byte[(int) file.length()];
+            fis.read(b);
+            String ret = new String(b, "UTF-8");
+            newString=ret;
+            // convert end of line chars in the db assertion file to current system line separator to support development across different types of OS
+
+            ret = ret.replace("\r\n", "\n");
+            ret = ret.replace("\n\r", "\n");
+            ret = ret.replace("\r", "\n");
+            ret = ret.replace("\n", System.getProperty("line.separator"));
+
+            newString = ret;
+            return newString;
+        }catch(Exception e){
+            logger.error("Error in replace", e);
+        }
+        finally
+        {
+            if(fis != null)
+                fis.close();
+        }
+        return newString;
+    }
+
+    private static HTTPWSClient getHTTPWSClient(
+            File operationTemplatePropertiesFile) throws FileNotFoundException, IOException {
+        File serviceConfigDir = operationTemplatePropertiesFile.getParentFile().getParentFile();
+        if(httpWSClientCache.containsKey(serviceConfigDir))
+            return httpWSClientCache.get(serviceConfigDir);
+
+        File endpointConnectorPropertiesFile = new File(serviceConfigDir, "endpointconnector.properties");
+        Map<String, String> endpontConnectorProperties = loadProperties(null, endpointConnectorPropertiesFile);
+        HTTPWSClient ret = new HTTPWSClient();
+
+        ret.setServiceProtocol(endpontConnectorProperties.get("serviceProtocol"));
+        ret.setServiceHostName(endpontConnectorProperties.get("serviceHostName"));
+        ret.setServicePortNumber(Integer.parseInt(endpontConnectorProperties.get("servicePortNumber")));
+        ret.setKeyStorePath(endpontConnectorProperties.get("keyStorePath"));
+        if(endpontConnectorProperties.containsKey("keyStoreType"))
+        {
+            ret.setKeyStoreType(endpontConnectorProperties.get("keyStoreType"));
+        }
+        ret.setKeyStorePassword(endpontConnectorProperties.get("keyStorePassword"));
+        ret.setTrustStorePath(endpontConnectorProperties.get("trustStorePath"));
+        ret.setTrustStorePassword(endpontConnectorProperties.get("trustStorePassword"));
+        if(endpontConnectorProperties.containsKey("trustStoreType"))
+        {
+            ret.setTrustStoreType(endpontConnectorProperties.get("trustStoreType"));
+        }
+        ret.setSocketTimeOutMillis(Integer.parseInt(endpontConnectorProperties.get("socketTimeOutMillis")));
+        ret.setConnectionTimeOutMillis(Integer.parseInt(endpontConnectorProperties.get("connectionTimeOutMillis")));
+        ret.setRetryOnTimeout(Boolean.parseBoolean(endpontConnectorProperties.get("retryOnTimeout")));
+        ret.setNumberOfRetries(Integer.parseInt(endpontConnectorProperties.get("numberOfRetries")));
+        ret.setMaxConnectionsPerHost(Integer.parseInt(endpontConnectorProperties.get("maxConnectionsPerHost")));
+        ret.setStaleCheckingEnabled(Boolean.parseBoolean(endpontConnectorProperties.get("staleCheckingEnabled")));
+        if(endpontConnectorProperties.containsKey("secureSocketProtocol"))
+        {
+            ret.setSecureSocketProtocol(endpontConnectorProperties.get("secureSocketProtocol"));
+        }
+
+        httpWSClientCache.put(serviceConfigDir, ret);
+        return ret;
+    }
+
+    /**
+     * Used to load response.properties, endpointconnector.properties, DBConnections/*.properties,
+     * global/../<operation>.properties, global/../RequestHeaderTemplate_<operation>.properties 
+     * @param variables
+     * @param propertiesFile
+     * @return
+     * @throws IOException
+     * @throws FileNotFoundException
+     */
+    private static Map<String, String> loadProperties(
+            Map<String, String> variables, File propertiesFile)
+            throws IOException, FileNotFoundException {
+        logger.info("Loading properties from:"+propertiesFile);
+        FileInputStream fis = null;
+        try
+        {
+            Properties temp = new Properties();
+            fis = new FileInputStream(propertiesFile);
+            temp.load(fis);
+
+            Map<String, String> ret = new HashMap<String, String>();
+            if(variables != null)
+            {
+                ret.putAll(variables);
+            }
+            for (Entry<Object, Object> entry : temp.entrySet()) {
+                if(variables != null)
+                {
+                    entry.setValue(formatter.format(""+entry.getValue(), variables));
+                }
+                ret.put(""+entry.getKey(), ""+entry.getValue());
+            }
+            return ret;
+        }
+        finally
+        {
+            if(fis != null)
+                fis.close();
+        }
+    }
+
+    /**
+     * testcases/includes-excludes.properties, 
+     * 
+     * @param propertiesFile
+     * @return
+     * @throws IOException
+     */
+    private static Map<String, String> loadProperties(File propertiesFile) throws IOException {
+        logger.info("Loading properties from:"+propertiesFile);
+        FileInputStream fis = null;
+        try
+        {
+            Properties temp = new Properties();
+            fis = new FileInputStream(propertiesFile);
+            temp.load(fis);
+
+            Map<String, String> ret = new HashMap<String, String>();
+            for (Entry<Object, Object> entry : temp.entrySet()) {
+                ret.put(""+entry.getKey(), ""+entry.getValue());
+            }
+            return ret;
+        }
+        finally
+        {
+            if(fis != null)
+                fis.close();
+        }
+    }
+
+}
