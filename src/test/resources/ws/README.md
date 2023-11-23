@@ -1,0 +1,1 @@
+This folder contains configurations for sample WS that is used for testing WSFeeler
