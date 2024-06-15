@@ -92,23 +92,28 @@ public class WSTestStep extends TestStep
                 {
                     logger.info("FAILURE: Teststep "+ this.name +" for assertion "+assertionExpression);
                     logger.info("Test step variables are "+testStepOutputVariables);
+                    this.setSuccess(false);
                     return false;
                 }
             }
             else
             {
                 logger.info("FAILURE: Assertion expression "+assertionExpression+" return non-boolean value "+ stepResult + " of type "+stepResult.getClass());
+                this.setSuccess(false);
                 return false;
             }
         }
+        this.setSuccess(true);
         return true;
 		} catch (IOException e)
 		{
 			logger.error("Error while executing step {}", this.name, e);
+            this.setSuccess(false);
             return false;
 		} catch (EvalError e)
 		{
 			logger.error("Error while executing step {}", this.name, e);
+            this.setSuccess(false);
             return false;
 		}
 		finally

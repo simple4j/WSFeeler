@@ -240,9 +240,9 @@ public class TestCase implements Callable<Boolean>
 	public String toString()
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append("super.toString() [name=").append(name).append(", testCaseDirectory=").append(testCaseDirectory)
-				.append(", testCaseVariables=").append(testCaseVariables).append(", success=").append(success)
-				.append("]");
+		builder.append(super.toString()).append(" [name=").append(name).append(", testCaseDirectory=").append(testCaseDirectory)
+				.append(", testCaseVariables=").append(testCaseVariables).append(", testSteps=").append(testSteps)
+				.append(", success=").append(success).append(", subTestCases=").append(subTestCases).append("]");
 		return builder.toString();
 	}
 }
