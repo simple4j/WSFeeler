@@ -1,7 +1,5 @@
 package org.simple4j.wsfeeler.test;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.UnknownHostException;
@@ -12,6 +10,7 @@ import java.util.UUID;
 import org.hsqldb.server.Server;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -91,8 +90,8 @@ public class MainTest
 	public void test()
 	{
 		TestSuite ts = new TestSuite();
-		ts.execute();
-		fail("Not yet implemented");
+		boolean success = ts.execute();
+		Assert.assertTrue("Failed testcases are :" + ts.getFailedTestCases(), success);
 	}
 
 }

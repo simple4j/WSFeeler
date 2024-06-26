@@ -123,7 +123,7 @@ public class TestSuite
 		mainApplicationContext = new ClassPathXmlApplicationContext(this.testSuiteClasspathRoot+"/connectors/main-appContext.xml");
 	}
 
-	public void execute()
+	public boolean execute()
 	{
 		this.initPath();
 		this.initVariables();
@@ -131,7 +131,13 @@ public class TestSuite
 		this.loadConnectors();
 		File testcasesDir = new File(this.testSuiteDirectory,"/testcases");
 		this.testCases = testCaseExecutor.execute(testcasesDir, this);
-        File[] testcaseDirs = testcasesDir.listFiles();
+		
+		if(this.failedTestCases.size() > 0)
+		{
+			return false;
+		}
+		return true;
+//        File[] testcaseDirs = testcasesDir.listFiles();
 	}
 
 	private void initPath()
@@ -162,6 +168,16 @@ public class TestSuite
 	{
 		failedTestCases.add(testCase);
 		
+	}
+
+	public List<TestCase> getTestCases()
+	{
+		return testCases;
+	}
+
+	public List<TestCase> getFailedTestCases()
+	{
+		return failedTestCases;
 	}
 	
 	

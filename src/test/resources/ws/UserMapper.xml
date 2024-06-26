@@ -16,6 +16,20 @@
 		<result column="MODIFY_TIME" property="modifyTime" />
 	</resultMap>
 
+	<update id="createUserTable">
+	<![CDATA[
+		create table USER (USER_PK varchar(50) NOT NULL,
+		DISPLAY_NAME varchar(100) NOT NULL,
+		GENDER varchar(10),
+		BIRTH_YEAR INT,
+		BIRTH_MONTH INT,
+		CREATE_TIME datetime NOT NULL,
+		MODIFY_TIME datetime NOT NULL,
+		PRIMARY KEY(USER_PK)
+		)
+	]]>
+	</update>
+	
 	<insert id="insertUser" parameterType="User">
 	<![CDATA[
 		INSERT INTO USER
@@ -34,8 +48,8 @@
 			#{gender},
 			#{birthYear},
 			#{birthMonth},
-			NOW(3),
-			NOW(3)
+			NOW(),
+			NOW()
 		)
 	]]>
 	</insert>

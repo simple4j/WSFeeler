@@ -1,5 +1,7 @@
 package org.simple4j.wsfeeler.test.ws;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +21,16 @@ public class UserWS
 	{
 		ac = new ClassPathXmlApplicationContext("ws/main-appCntxt.xml");
 		UserDAO userDAO = (UserDAO) ac.getBean("userDAO");
+		
+		try
+		{
+			//below line is needed for this sample WS only
+			userDAO.createUserTable();
+		}
+		catch(Throwable t)
+		{
+			logger.warn("Probably the table exists already", t);
+		}
 		ObjectMapper om = new ObjectMapper();
 
 		Spark.port(9090);
@@ -59,6 +71,7 @@ public class UserWS
 				}
 				// input validation end
 
+				userVO.userPK = UUID.randomUUID().toString();
 				userDAO.insertUser(userVO);
 				res.status(200);
 				return "{}";

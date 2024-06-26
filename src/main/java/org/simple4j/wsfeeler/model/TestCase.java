@@ -33,10 +33,15 @@ public class TestCase implements Callable<Boolean>
 	public TestCase parent = null;
 	public TestSuite testSuite = null;
 	public Map<String, Object> testCaseVariables = null;
-	public Map<String, TestStep> testSteps = new HashMap<String, TestStep>();
+	public Map<String, TestStep> executedTestSteps = new HashMap<String, TestStep>();
 	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor();
 	private Boolean success = null;
 	private List<TestCase> subTestCases = null;
+
+	public Boolean getSuccess()
+	{
+		return success;
+	}
 
 	public TestCase(File testCaseDirectory, TestSuite testSuite)
 	{
@@ -113,7 +118,7 @@ public class TestCase implements Callable<Boolean>
         else
         {
 			TestStep step = TestStep.getInstance(typeOfStep, testStepInputVariables, testStepFile, this, this.testSuite);
-			this.testSteps.put(step.name, step);
+			this.executedTestSteps.put(step.name, step);
         	return step.execute();
         }
 	}
@@ -227,8 +232,14 @@ public class TestCase implements Callable<Boolean>
 				if(key.indexOf("/") > 1)
 				{
 					String stepName = key.substring(0,key.indexOf("/"));
+					if(stepName == null || stepName.trim().length() < 1)
+						return null;
 					key = key.substring(key.indexOf("/")+1);
-					TestStep testStep = this.testSteps.get(stepName);
+					if(key == null || key.trim().length() < 1)
+						return null;
+					TestStep testStep = this.executedTestSteps.get(stepName);
+					if(testStep == null)
+						return null;
 					return testStep.getProperty(key);
 				}
 				return this.testCaseVariables.get(key);
@@ -241,7 +252,7 @@ public class TestCase implements Callable<Boolean>
 	{
 		StringBuilder builder = new StringBuilder();
 		builder.append(super.toString()).append(" [name=").append(name).append(", testCaseDirectory=").append(testCaseDirectory)
-				.append(", testCaseVariables=").append(testCaseVariables).append(", testSteps=").append(testSteps)
+				.append(", testCaseVariables=").append(testCaseVariables).append(", executedTestSteps=").append(executedTestSteps)
 				.append(", success=").append(success).append(", subTestCases=").append(subTestCases).append("]");
 		return builder.toString();
 	}

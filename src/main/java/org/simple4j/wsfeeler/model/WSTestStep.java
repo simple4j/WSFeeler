@@ -58,8 +58,16 @@ public class WSTestStep extends TestStep
         Map<String, Object> response = caller.call(this.testStepVariables);
         logger.info("response from service call:"+response);
 
+        Interpreter bsh = new Interpreter();
         for (Entry<String, Object> entry : response.entrySet()) {
         	this.testStepVariables.put(entry.getKey(), entry.getValue());
+        	try
+			{
+				bsh.set(entry.getKey(), entry.getValue());
+			} catch (EvalError e)
+			{
+				logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), entry.getValue(), e);
+			}
         }
 
         File outputPropertiesFile = new File(this.testStepInputFile.getParentFile(),this.testStepInputFile.getName().replace("input.properties", "output.properties"));
@@ -76,16 +84,33 @@ public class WSTestStep extends TestStep
         }
         if(assertionExpression != null)
         {
-            Interpreter bsh = new Interpreter();
             if(testStepOutputVariables != null)
             {
                 for (Entry<String, Object> entry : testStepOutputVariables.entrySet()) {
                 	CollectionsPathRetreiver cpr = new CollectionsPathRetreiver();
-                    bsh.set(entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
+                    try
+					{
+                    	logger.info("setting key: {} value: {}", entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
+						bsh.set(entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
+					} catch (EvalError e)
+            		{
+						logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()), e);
+			            this.setSuccess(false);
+			            return false;
+					}
                     this.testStepVariables.put(entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
                 }
             }
-            Object stepResult = bsh.eval(assertionExpression);
+            Object stepResult;
+			try
+			{
+				stepResult = bsh.eval(assertionExpression);
+			} catch (EvalError e)
+    		{
+				logger.error("Error while evaluating ASSERT: {} in step: {}", this.name, assertionExpression, e);
+	            this.setSuccess(false);
+	            return false;
+			}
             if(stepResult instanceof Boolean)
             {
                 if(!((Boolean)stepResult))
@@ -106,11 +131,6 @@ public class WSTestStep extends TestStep
         this.setSuccess(true);
         return true;
 		} catch (IOException e)
-		{
-			logger.error("Error while executing step {}", this.name, e);
-            this.setSuccess(false);
-            return false;
-		} catch (EvalError e)
 		{
 			logger.error("Error while executing step {}", this.name, e);
             this.setSuccess(false);
