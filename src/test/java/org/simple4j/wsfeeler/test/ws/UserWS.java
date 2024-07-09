@@ -43,7 +43,7 @@ public class UserWS
 					res.status(412);
 					return "{\"errorCodes\" : [\"userPK-required\"]}";
 				}
-				if (userPK.trim().length() > 10)
+				if (userPK.trim().length() > 40)
 				{
 					res.status(412);
 					return "{\"errorCodes\" : [\"userPK-maxlength\"]}";
@@ -74,7 +74,7 @@ public class UserWS
 				userVO.userPK = UUID.randomUUID().toString();
 				userDAO.insertUser(userVO);
 				res.status(200);
-				return "{}";
+				return "{\"userPK\" : \""+userVO.userPK+"\"}";
 			});
 
 		Spark.post("/user/", (req, res) ->
@@ -108,28 +108,28 @@ public class UserWS
 		String delim = "";
 		if (userVO.displayName == null || userVO.displayName.trim().length() < 1)
 		{
-			sb.append(delim).append("\"displayName-required\"");
+			sb.append(delim).append("displayName-required");
 			delim = ",";
 		}
 		if (userVO.displayName.trim().length() > 20)
 		{
-			sb.append(delim).append("\"displayName-maxlength\"");
+			sb.append(delim).append("displayName-maxlength");
 			delim = ",";
 		}
 		if (userVO.gender == null || userVO.gender.trim().length() < 1)
 		{
-			sb.append(delim).append("\"gender-required\"");
+			sb.append(delim).append("gender-required");
 			delim = ",";
 		}
 		if (!userVO.gender.equalsIgnoreCase("F") && !userVO.gender.equalsIgnoreCase("M")
 				&& !userVO.gender.equalsIgnoreCase("O"))
 		{
-			sb.append(delim).append("\"gender-invalid\"");
+			sb.append(delim).append("gender-invalid");
 			delim = ",";
 		}
 		if (userVO.birthMonth != null && (userVO.birthMonth < 1 || userVO.birthMonth > 12))
 		{
-			sb.append(delim).append("\"gender-invalid\"");
+			sb.append(delim).append("birthMonth-invalid");
 			delim = ",";
 		}
 		return sb;

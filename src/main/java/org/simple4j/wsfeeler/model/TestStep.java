@@ -4,10 +4,15 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class TestStep
 {
-
+	private static Logger logger = LoggerFactory.getLogger(TestStep.class);
+	
 	public String name = null;
+	public String shortName = null;
 	public File testStepInputFile = null;
 	public TestCase parent = null;
 	public TestSuite testSuite = null;
@@ -31,6 +36,10 @@ public abstract class TestStep
 		this.testSuite = testSuite;
 		String testStepAbsolutePath = testStepInputFile.getAbsolutePath();
 		this.name = testStepAbsolutePath.substring(this.testSuite.getTestSuiteDirectory().getAbsolutePath().length(),testStepAbsolutePath.length()-"input.properties".length());
+		String inputFileName = testStepInputFile.getName();
+		logger.info("inputFileName {}", inputFileName);
+		this.shortName = inputFileName.substring(0,inputFileName.length()-"-input.properties".length());
+		logger.info("shortName {}", this.shortName);
 		this.parent = parent;
 	}
 
@@ -42,10 +51,14 @@ public abstract class TestStep
 	
 	public Object getProperty(String key)
 	{
-		return this.testStepVariables.get(key);
+		logger.info("Entering getProperty {}", key);
+		Object ret = this.testStepVariables.get(key);
+		logger.info("Exiting getProperty {}", ret);
+		return ret;
 	}
 
-	public static TestStep getInstance(String typeOfStep, Map<String, Object> testStepInputVariables, File testStepInputFile, TestCase parent, TestSuite testSuite) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException
+	public static TestStep getInstance(String typeOfStep, Map<String, Object> testStepInputVariables, 
+			File testStepInputFile, TestCase parent, TestSuite testSuite) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException
 	{
 		return (TestStep) Class.forName(typeOfStep).getConstructor(Map.class, File.class, TestCase.class, TestSuite.class)
 				.newInstance(testStepInputVariables, testStepInputFile, parent, testSuite);
@@ -55,9 +68,19 @@ public abstract class TestStep
 	public String toString()
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append(super.toString()).append(" [name=").append(name).append(", testStepInputFile=").append(testStepInputFile)
-				.append(", testStepVariables=").append(testStepVariables).append(", success=").append(success)
-				.append("]");
+		builder.append(super.toString()).append(" [name=").append(name).append(", shortName=").append(shortName)
+				.append(", testStepInputFile=").append(testStepInputFile).append(", testStepVariables=")
+				.append(testStepVariables).append(", success=").append(success).append("]");
 		return builder.toString();
 	}
+
+//	@Override
+//	public String toString()
+//	{
+//		StringBuilder builder = new StringBuilder();
+//		builder.append(super.toString()).append(" [name=").append(name).append(", testStepInputFile=").append(testStepInputFile)
+//				.append(", testStepVariables=").append(testStepVariables).append(", success=").append(success)
+//				.append("]");
+//		return builder.toString();
+//	}
 }

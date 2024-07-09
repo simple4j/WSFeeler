@@ -37,6 +37,7 @@ public class ConfigLoader
 	public static Map<String, Object> loadVariables(InputStream variablesStream,
 			Map<String, Object> globalVariables2, String prefix) throws IOException, EvalError
 	{
+		logger.info("Inside loadVariables: {}, {}", globalVariables2, prefix);
 		try
 		{
 			if (prefix == null)

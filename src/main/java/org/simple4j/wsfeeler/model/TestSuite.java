@@ -33,7 +33,7 @@ public class TestSuite
 	private String excludesTestCasesRegex = null;
 	private ApplicationContext mainApplicationContext = null;
 	private File testSuiteDirectory = null;
-	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor();
+	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor(null);
     private List<TestCase> failedTestCases = new ArrayList<TestCase>();
 
 	public File getTestSuiteDirectory()

@@ -10,7 +10,7 @@
                         http://www.springframework.org/schema/util
 						http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
-	<bean id="postCallerFactory" class="org.simple4j.wsclient.caller.FreeMarkerJSONCallerFactory">
+	<bean id="putCallerFactory" class="org.simple4j.wsclient.caller.FreeMarkerJSONCallerFactory">
 		<property name="httpWSClient" ref="httpWSClient"></property>
 		<property name="jSONConfig">
 			<value>
@@ -19,9 +19,9 @@
 	"freemarkerEncoding":"UTF-8",
 	"freemarkerVersion":"2.3.23",
     "request": {
-        "method": "POST",
+        "method": "PUT",
         "urlPattern": "/user",
-        "body": "{\"userPK\":\"${userPK}\", " \"displayName\":\"${displayNameVar}\",\"gender\":\"${gender}\",\"birthYear\":${birthYear},\"birthMonth\":${birthMonth}}",
+        "body": "{\"displayName\":\"${displayNameVar}\",\"gender\":\"${gender}\",\"birthYear\":${birthYear},\"birthMonth\":${birthMonth}}",
         "staticHeaders": {
             "Content-Type": "application/JSON"
         },
@@ -48,23 +48,6 @@
 
 	<!-- {} -->
 	<bean id="successBodyParser" class="org.simple4j.wsclient.parser.impl.JSONParser">
-	</bean>
-
-	<!--
-	<errorResponse>
-		<errorId>ujd83jheusd83ujjsdi</errorId>
-		<errorType>VALIDATION_FAILURE</errorType>
-		<errorReasonCode>param1-empty</errorReasonCode>
-		<errorReasonCode>param2-maxlength</errorReasonCode>
-		<description>Some fields failed validation check</description>
-	</errorResponse>
-	 -->
-	<bean id="failureBodyParser" class="org.simple4j.wsclient.parser.impl.XMLParser">
-		<property name="listElementXpaths">
-			<list>
-				<value>errorReasonCode</value>
-			</list>
-		</property>
 	</bean>
 
 </beans>

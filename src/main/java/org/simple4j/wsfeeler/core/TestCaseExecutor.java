@@ -18,39 +18,51 @@ public class TestCaseExecutor
 {
 	private static Logger logger = LoggerFactory.getLogger(TestCaseExecutor.class);
 	private ExecutorService testCasesExecutorService = Executors.newFixedThreadPool(10);
+	private TestCase parent = null;
 
+	public TestCaseExecutor(TestCase parent)
+	{
+		super();
+		this.parent = parent;
+	}
+	
 	public List<TestCase> execute(File parentTestCasesDir, TestSuite testSuite)
 	{
+		logger.info("Entering execute {}", parentTestCasesDir);
+		if(!parentTestCasesDir.exists() || !parentTestCasesDir.isDirectory())
+		{
+			throw new RuntimeException("Path does not exist or is not a directory:"+parentTestCasesDir);
+		}
 		try
 		{
-        File[] testCaseDirs = parentTestCasesDir.listFiles(new FileFilter() {
-
-			@Override
-			public boolean accept(File pathname)
-			{
-				return pathname.isDirectory() && pathname.exists();
-			}});
+	        File[] testCaseDirs = parentTestCasesDir.listFiles(new FileFilter() {
+	
+				@Override
+				public boolean accept(File pathname)
+				{
+					return pathname.isDirectory() && pathname.exists();
+				}});
         
         
-        List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>(testCaseDirs.length);
-        List<TestCase> testCases = new ArrayList<TestCase>(testCaseDirs.length);
-        for (int i = 0; i < testCaseDirs.length; i++) {
-            logger.info("Submitting :"+testCaseDirs[i]);
-            if(testCaseDirs[i].isDirectory())
-            {
-            	TestCase tc = new TestCase(testCaseDirs[i], testSuite);
-            	Future<Boolean> future = this.testCasesExecutorService.submit(tc);
-            	testCases.add(tc);
-            	futures.add(future);
-            }
-        }
-        
-        for (int i = 0; i < testCaseDirs.length; i++) {
-            logger.info("waiting :"+testCaseDirs[i]);
-            futures.get(i).get();
-        }
-        
-        return testCases;
+	        List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>(testCaseDirs.length);
+	        List<TestCase> testCases = new ArrayList<TestCase>(testCaseDirs.length);
+	        for (int i = 0; i < testCaseDirs.length; i++) {
+	            logger.info("Submitting :"+testCaseDirs[i]);
+	            if(testCaseDirs[i].isDirectory())
+	            {
+	            	TestCase tc = new TestCase(testCaseDirs[i], testSuite, this.parent);
+	            	Future<Boolean> future = this.testCasesExecutorService.submit(tc);
+	            	testCases.add(tc);
+	            	futures.add(future);
+	            }
+	        }
+	        
+	        for (int i = 0; i < testCaseDirs.length; i++) {
+	            logger.info("waiting :"+testCaseDirs[i]);
+	            futures.get(i).get();
+	        }
+	        
+	        return testCases;
 		} catch (InterruptedException e)
 		{
 			throw new RuntimeException(e);
@@ -60,7 +72,7 @@ public class TestCaseExecutor
 		}
 		finally
 		{
-			
+			logger.info("Exiting execute {}", parentTestCasesDir);
 		}
 	}
 

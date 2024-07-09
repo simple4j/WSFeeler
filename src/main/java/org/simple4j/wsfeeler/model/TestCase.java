@@ -11,10 +11,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.simple4j.wsfeeler.core.ConfigLoader;
@@ -34,7 +37,7 @@ public class TestCase implements Callable<Boolean>
 	public TestSuite testSuite = null;
 	public Map<String, Object> testCaseVariables = null;
 	public Map<String, TestStep> executedTestSteps = new HashMap<String, TestStep>();
-	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor();
+	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor(this);
 	private Boolean success = null;
 	private List<TestCase> subTestCases = null;
 
@@ -43,11 +46,12 @@ public class TestCase implements Callable<Boolean>
 		return success;
 	}
 
-	public TestCase(File testCaseDirectory, TestSuite testSuite)
+	public TestCase(File testCaseDirectory, TestSuite testSuite, TestCase parent)
 	{
 		this.testSuite = testSuite;
 		this.name = testCaseDirectory.getAbsolutePath().substring(this.testSuite.getTestSuiteDirectory().getAbsolutePath().length());
 		this.testCaseDirectory = testCaseDirectory;
+		this.parent = parent;
 	}
 
 	public boolean execute() throws IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, InterruptedException, ExecutionException
@@ -118,8 +122,9 @@ public class TestCase implements Callable<Boolean>
         else
         {
 			TestStep step = TestStep.getInstance(typeOfStep, testStepInputVariables, testStepFile, this, this.testSuite);
-			this.executedTestSteps.put(step.name, step);
-        	return step.execute();
+			this.executedTestSteps.put(step.shortName, step);
+        	boolean ret = step.execute();
+			return ret;
         }
 	}
 
@@ -140,11 +145,16 @@ public class TestCase implements Callable<Boolean>
         return testcaseDirsList;
     }
 
-	public void initVariables()
+	private void initVariables()
 	{
 		if(this.testCaseVariables == null)
 		{
-			testCaseVariables = this.testSuite.getTestSuiteVariables();
+			this.testCaseVariables = new ConcurrentHashMap<String, Object>();
+			Map<String, Object> testSuiteVariables = this.testSuite.getTestSuiteVariables();
+            for (Entry<String, Object> entry : testSuiteVariables.entrySet())
+			{
+				this.testCaseVariables.put(entry.getKey(), entry.getValue());
+			}
 			testCaseVariables.put("TESTCASE/STARTTIME", ""+System.currentTimeMillis());
 			testCaseVariables.put("TESTCASE/UUID", UUID.randomUUID().toString());
 			testCaseVariables.put("TESTCASE/RAND5", Math.round(Math.random()*99999));
@@ -202,8 +212,10 @@ public class TestCase implements Callable<Boolean>
 
 	public Object getProperty(String key)
 	{
+		logger.info("Entering getProperty {} {}", this.testCaseDirectory, key);
 		if(key.startsWith("../"))
 		{
+			logger.info("Starts with ../");
 			if(this.parent != null)
 			{
 				return this.parent.getProperty(key.substring(3));
@@ -217,6 +229,7 @@ public class TestCase implements Callable<Boolean>
 		{
 			if(key.startsWith("TESTSUITE/"))
 			{
+				logger.info("Starts with TESTSUITE/");
 				key = key.substring(10);
 				return this.testSuite.getTestSuiteVariableValue(key);
 			}
@@ -224,20 +237,28 @@ public class TestCase implements Callable<Boolean>
 			{
 				if(key.startsWith("./"))
 				{
+					logger.info("Starts with ./");
 					key = key.substring(2);
 				}
 
 				if(key.startsWith("TESTCASE/"))
+				{
+					logger.info("Starts with TESTCASE/");
 					return this.testCaseVariables.get(key);
+				}
 				if(key.indexOf("/") > 1)
 				{
+					logger.info("Contains /");
 					String stepName = key.substring(0,key.indexOf("/"));
+					logger.info("stepName {}", stepName);
 					if(stepName == null || stepName.trim().length() < 1)
 						return null;
 					key = key.substring(key.indexOf("/")+1);
+					logger.info("key {}", key);
 					if(key == null || key.trim().length() < 1)
 						return null;
 					TestStep testStep = this.executedTestSteps.get(stepName);
+					logger.info("testStep {}", testStep);
 					if(testStep == null)
 						return null;
 					return testStep.getProperty(key);

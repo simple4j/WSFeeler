@@ -2,6 +2,7 @@ package org.simple4j.wsfeeler.model;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -31,105 +32,116 @@ public class WSTestStep extends TestStep
 	@Override
 	public boolean execute()
 	{
-		logger.info("Inside execute:{}", this.name);
+		logger.info("Entering execute:{}", this.name);
 		try
 		{
 			Caller caller = null;
-    	Object callerBeanIdObj = this.testStepVariables.get("callerBeanId");
-    	if(callerBeanIdObj != null)
-    	{
-    		String callerBeanId = (String) callerBeanIdObj;
-            caller = getCaller(callerBeanId);
-    	}
-    	else
-    	{
-        	Object callerFactoryBeanIdObj = this.testStepVariables.get("callerFactoryBeanId");
-        	if(callerFactoryBeanIdObj != null)
-        	{
-        		String callerFactoryBeanId = (String) callerFactoryBeanIdObj;
-                caller = getCallerFactory(callerFactoryBeanId).getCaller();
-        	}
-        	else
-        	{
-        		throw new SystemException("callerBeanId-callerFactoryBeanId-missing", "Both callerBeanId and callerFactoryBeanId is missing in the file:"+this.testStepInputFile);
-        	}
-    	}
-        logger.info("Calling service");
-        Map<String, Object> response = caller.call(this.testStepVariables);
-        logger.info("response from service call:"+response);
-
-        Interpreter bsh = new Interpreter();
-        for (Entry<String, Object> entry : response.entrySet()) {
-        	this.testStepVariables.put(entry.getKey(), entry.getValue());
-        	try
-			{
-				bsh.set(entry.getKey(), entry.getValue());
-			} catch (EvalError e)
-			{
-				logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), entry.getValue(), e);
-			}
-        }
-
-        File outputPropertiesFile = new File(this.testStepInputFile.getParentFile(),this.testStepInputFile.getName().replace("input.properties", "output.properties"));
-        String assertionExpression = null;
-        Map<String, Object> testStepOutputVariables = null;
-        if(outputPropertiesFile.exists())
-        {
-            testStepOutputVariables = ConfigLoader.loadVariables(outputPropertiesFile, this.parent);
-            if(testStepOutputVariables.containsKey("ASSERT"))
-            {
-	            assertionExpression = ""+testStepOutputVariables.get("ASSERT");
-	            testStepOutputVariables.remove("ASSERT");
-            }
-        }
-        if(assertionExpression != null)
-        {
-            if(testStepOutputVariables != null)
-            {
-                for (Entry<String, Object> entry : testStepOutputVariables.entrySet()) {
-                	CollectionsPathRetreiver cpr = new CollectionsPathRetreiver();
-                    try
+	    	Object callerBeanIdObj = this.testStepVariables.get("callerBeanId");
+	    	if(callerBeanIdObj != null)
+	    	{
+	    		String callerBeanId = (String) callerBeanIdObj;
+	            caller = getCaller(callerBeanId);
+	    	}
+	    	else
+	    	{
+	        	Object callerFactoryBeanIdObj = this.testStepVariables.get("callerFactoryBeanId");
+	        	if(callerFactoryBeanIdObj != null)
+	        	{
+	        		String callerFactoryBeanId = (String) callerFactoryBeanIdObj;
+	                caller = getCallerFactory(callerFactoryBeanId).getCaller();
+	        	}
+	        	else
+	        	{
+	        		throw new SystemException("callerBeanId-callerFactoryBeanId-missing", "Both callerBeanId and callerFactoryBeanId is missing in the file:"+this.testStepInputFile);
+	        	}
+	    	}
+	        logger.info("Calling service");
+	        Map<String, Object> response = caller.call(this.testStepVariables);
+	        logger.info("response from service call:"+response);
+	
+	        Interpreter bsh = new Interpreter();
+	        for (Entry<String, Object> entry : response.entrySet())
+	        {
+	        	this.testStepVariables.put(entry.getKey(), entry.getValue());
+	        	try
+				{
+					bsh.set(entry.getKey(), entry.getValue());
+				} catch (EvalError e)
+				{
+					logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), entry.getValue(), e);
+				}
+	        }
+	
+	        File outputPropertiesFile = new File(this.testStepInputFile.getParentFile(),this.testStepInputFile.getName().replace("input.properties", "output.properties"));
+	        String assertionExpression = null;
+	        Map<String, Object> testStepOutputVariables = null;
+	        if(outputPropertiesFile.exists())
+	        {
+	            testStepOutputVariables = ConfigLoader.loadVariables(outputPropertiesFile, this.parent);
+	            if(testStepOutputVariables.containsKey("ASSERT"))
+	            {
+		            assertionExpression = ""+testStepOutputVariables.get("ASSERT");
+		            testStepOutputVariables.remove("ASSERT");
+	            }
+	        }
+	        if(testStepOutputVariables != null)
+	        {
+	            for (Entry<String, Object> entry : testStepOutputVariables.entrySet()) {
+	            	CollectionsPathRetreiver cpr = new CollectionsPathRetreiver();
+	                List nestedProperty = cpr.getNestedProperty(response, ""+entry.getValue());
+	                Object value = nestedProperty;
+	                if(nestedProperty.size() == 0)
+	                {
+	                	continue;
+	                }
+	                if(nestedProperty.size() == 1)
+	                {
+	                	value = nestedProperty.get(0);
+	                }
+					try
 					{
-                    	logger.info("setting key: {} value: {}", entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
-						bsh.set(entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
+	                	logger.info("setting key: {} value: {}", entry.getKey(), value);
+						bsh.set(entry.getKey(), value);
 					} catch (EvalError e)
-            		{
-						logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()), e);
+	        		{
+						logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), value, e);
 			            this.setSuccess(false);
 			            return false;
 					}
-                    this.testStepVariables.put(entry.getKey(), cpr.getNestedProperty(response, ""+entry.getValue()));
-                }
-            }
-            Object stepResult;
-			try
-			{
-				stepResult = bsh.eval(assertionExpression);
-			} catch (EvalError e)
-    		{
-				logger.error("Error while evaluating ASSERT: {} in step: {}", this.name, assertionExpression, e);
-	            this.setSuccess(false);
-	            return false;
-			}
-            if(stepResult instanceof Boolean)
-            {
-                if(!((Boolean)stepResult))
-                {
-                    logger.info("FAILURE: Teststep "+ this.name +" for assertion "+assertionExpression);
-                    logger.info("Test step variables are "+testStepOutputVariables);
-                    this.setSuccess(false);
-                    return false;
-                }
-            }
-            else
-            {
-                logger.info("FAILURE: Assertion expression "+assertionExpression+" return non-boolean value "+ stepResult + " of type "+stepResult.getClass());
-                this.setSuccess(false);
-                return false;
-            }
-        }
-        this.setSuccess(true);
-        return true;
+	                this.testStepVariables.put(entry.getKey(), value);
+	            }
+	        }
+	        if(assertionExpression != null)
+	        {
+	            Object stepResult;
+				try
+				{
+					stepResult = bsh.eval(assertionExpression);
+				} catch (EvalError e)
+	    		{
+					logger.error("Error while evaluating ASSERT: {} in step: {}", this.name, assertionExpression, e);
+		            this.setSuccess(false);
+		            return false;
+				}
+	            if(stepResult instanceof Boolean)
+	            {
+	                if(!((Boolean)stepResult))
+	                {
+	                    logger.info("FAILURE: Teststep "+ this.name +" for assertion "+assertionExpression);
+	                    logger.info("Test step variables are "+testStepOutputVariables);
+	                    this.setSuccess(false);
+	                    return false;
+	                }
+	            }
+	            else
+	            {
+	                logger.info("FAILURE: Assertion expression "+assertionExpression+" return non-boolean value "+ stepResult + " of type "+stepResult.getClass());
+	                this.setSuccess(false);
+	                return false;
+	            }
+	        }
+	        this.setSuccess(true);
+	        return true;
 		} catch (IOException e)
 		{
 			logger.error("Error while executing step {}", this.name, e);
@@ -138,7 +150,7 @@ public class WSTestStep extends TestStep
 		}
 		finally
 		{
-			
+			logger.info("Exiting execute:{}", this.name);
 		}
 	}
 

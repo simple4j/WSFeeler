@@ -10,7 +10,9 @@
                         http://www.springframework.org/schema/util
 						http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
+	<import resource="put.xml" />
 	<import resource="post.xml" />
+	<import resource="get.xml" />
 
 	<bean id="httpWSClient" class="org.simple4j.wsclient.http.HTTPWSClient">
 		<property name="connectionTimeOutMillis" value="1000"></property>
