@@ -78,7 +78,7 @@
 			GENDER=IFNULL(#{gender},GENDER),
 			BIRTH_YEAR=IFNULL(#{birthYear},BIRTH_YEAR),
 			BIRTH_MONTH=IFNULL(#{birthMonth},BIRTH_MONTH),
-			MODIFY_TIME=NOW(3)
+			MODIFY_TIME=NOW()
 		WHERE
 			USER_PK=#{userPK};
 	]]>

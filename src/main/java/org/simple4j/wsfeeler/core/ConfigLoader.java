@@ -79,7 +79,7 @@ public class ConfigLoader
 					} else
 						throw e;
 				}
-				logger.debug("evaluated value:" + eval);
+				logger.debug("Beanshell evaluated value:" + eval);
 				if (eval != null)
 				{
 					ret.put(prefix + key, eval);
@@ -146,7 +146,7 @@ public class ConfigLoader
 //				{
 //					eval = "" + loadedVariables.getProperty(key);
 //				}
-				logger.info("evaluated value:" + eval);
+				logger.info("Dereferenced test case property value:" + eval);
 				if(eval == null)
 				{
 					eval=loadedVariables.getProperty(key);

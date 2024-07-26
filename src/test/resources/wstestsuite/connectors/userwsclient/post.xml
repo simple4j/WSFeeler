@@ -21,13 +21,11 @@
     "request": {
         "method": "POST",
         "urlPattern": "/user",
-        "body": "{\"userPK\":\"${userPK}\", " \"displayName\":\"${displayNameVar}\",\"gender\":\"${gender}\",\"birthYear\":${birthYear},\"birthMonth\":${birthMonth}}",
+        "body": "{\"userPK\":\"${userPK}\", \"displayName\":\"${displayNameVar}\",\"gender\":\"${gender}\",\"birthYear\":${birthYear},\"birthMonth\":${birthMonth}}",
         "staticHeaders": {
             "Content-Type": "application/JSON"
         },
         "headers": {
-            "x-header1": "${testProperty1}",
-            "x-header2": "${testProperty2}"
         }
     },
     "response": {

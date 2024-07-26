@@ -67,8 +67,8 @@ public class TestSuite
 				testSuiteVariables.put("TESTSUITE/HOSTIP", InetAddress.getLocalHost().getHostAddress());
 				testSuiteVariables.put("TESTSUITE/STARTTIME", ""+System.currentTimeMillis());
 				testSuiteVariables.put("TESTSUITE/UUID", UUID.randomUUID().toString());
-				testSuiteVariables.put("TESTSUITE/RAND5", Math.round(Math.random()*99999));
-				testSuiteVariables.put("TESTSUITE/RAND10", Math.round(Math.random()*9999999999L));
+				testSuiteVariables.put("TESTSUITE/RAND5", ""+Math.round(Math.random()*99999));
+				testSuiteVariables.put("TESTSUITE/RAND10", ""+Math.round(Math.random()*9999999999L));
 			}
 		} catch (UnknownHostException e)
 		{

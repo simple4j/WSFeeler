@@ -60,15 +60,31 @@ public class WSTestStep extends TestStep
 	        logger.info("response from service call:"+response);
 	
 	        Interpreter bsh = new Interpreter();
+    		logger.info("Setting step variables");
+	        for (Entry<String, Object> entry : this.testStepVariables.entrySet())
+	        {
+	        	try
+				{
+	        		logger.debug("Setting {} : {}",entry.getKey(), entry.getValue());
+					bsh.set(entry.getKey(), entry.getValue());
+					
+				} catch (EvalError e)
+				{
+					logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), entry.getValue(), e);
+				}
+	        }
+	
+    		logger.info("Setting step response variables");
 	        for (Entry<String, Object> entry : response.entrySet())
 	        {
 	        	this.testStepVariables.put(entry.getKey(), entry.getValue());
 	        	try
 				{
+	        		logger.debug("Setting {} : {}",entry.getKey(), entry.getValue());
 					bsh.set(entry.getKey(), entry.getValue());
 				} catch (EvalError e)
 				{
-					logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), entry.getValue(), e);
+					logger.error("Error while setting output variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), entry.getValue(), e);
 				}
 	        }
 	
@@ -101,14 +117,14 @@ public class WSTestStep extends TestStep
 					try
 					{
 	                	logger.info("setting key: {} value: {}", entry.getKey(), value);
-						bsh.set(entry.getKey(), value);
+						bsh.set(entry.getKey(), ""+value);
 					} catch (EvalError e)
 	        		{
 						logger.error("Error while setting variable for BeanShell step: {} key: {} vaue: {}", this.name, entry.getKey(), value, e);
 			            this.setSuccess(false);
 			            return false;
 					}
-	                this.testStepVariables.put(entry.getKey(), value);
+	                this.testStepVariables.put(entry.getKey(), ""+value);
 	            }
 	        }
 	        if(assertionExpression != null)

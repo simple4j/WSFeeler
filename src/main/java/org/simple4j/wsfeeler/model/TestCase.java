@@ -157,8 +157,8 @@ public class TestCase implements Callable<Boolean>
 			}
 			testCaseVariables.put("TESTCASE/STARTTIME", ""+System.currentTimeMillis());
 			testCaseVariables.put("TESTCASE/UUID", UUID.randomUUID().toString());
-			testCaseVariables.put("TESTCASE/RAND5", Math.round(Math.random()*99999));
-			testCaseVariables.put("TESTCASE/RAND10", Math.round(Math.random()*9999999999L));
+			testCaseVariables.put("TESTCASE/RAND5", ""+Math.round(Math.random()*99999));
+			testCaseVariables.put("TESTCASE/RAND10", ""+Math.round(Math.random()*9999999999L));
 		}
 	}
 

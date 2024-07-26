@@ -77,7 +77,7 @@ public class UserWS
 				return "{\"userPK\" : \""+userVO.userPK+"\"}";
 			});
 
-		Spark.post("/user/", (req, res) ->
+		Spark.post("/user", (req, res) ->
 			{
 				logger.info("inside user post");
 				if (req.contentLength() > 2048)
