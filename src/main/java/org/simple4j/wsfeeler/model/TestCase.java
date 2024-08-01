@@ -57,6 +57,10 @@ public class TestCase implements Callable<Boolean>
 	public boolean execute() throws IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, InterruptedException, ExecutionException
 	{
 		logger.info("Inside execute:{}", name);
+		if(!this.testSuite.canExecute(name))
+		{
+			return success;
+		}
 		initVariables();
 		loadCustomVariables();
 		
@@ -203,9 +207,14 @@ public class TestCase implements Callable<Boolean>
 	{
 		
         this.execute();
+        if(success == null)
+        {
+            logger.info("SKIPPING: Testcase {}",this.name);
+        }
+
         if(!success)
         {
-            logger.info("FAILURE: Testcase "+this.name);
+            logger.info("FAILURE: Testcase {}",this.name);
         }
 		return success;
 	}

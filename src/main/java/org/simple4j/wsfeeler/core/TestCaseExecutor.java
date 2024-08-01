@@ -17,13 +17,22 @@ import org.slf4j.LoggerFactory;
 public class TestCaseExecutor
 {
 	private static Logger logger = LoggerFactory.getLogger(TestCaseExecutor.class);
-	private ExecutorService testCasesExecutorService = Executors.newFixedThreadPool(10);
+	private ExecutorService testCasesExecutorService = null;
 	private TestCase parent = null;
 
 	public TestCaseExecutor(TestCase parent)
 	{
 		super();
 		this.parent = parent;
+	}
+	
+	private ExecutorService getTestCasesExecutorService(int threadPoolSize)
+	{
+		if(this.testCasesExecutorService == null)
+		{
+			this.testCasesExecutorService = Executors.newFixedThreadPool(threadPoolSize);
+		}
+		return this.testCasesExecutorService;
 	}
 	
 	public List<TestCase> execute(File parentTestCasesDir, TestSuite testSuite)
@@ -51,7 +60,7 @@ public class TestCaseExecutor
 	            if(testCaseDirs[i].isDirectory())
 	            {
 	            	TestCase tc = new TestCase(testCaseDirs[i], testSuite, this.parent);
-	            	Future<Boolean> future = this.testCasesExecutorService.submit(tc);
+	            	Future<Boolean> future = this.getTestCasesExecutorService(testSuite.getTestCaseExecutorThreadPoolSize()).submit(tc);
 	            	testCases.add(tc);
 	            	futures.add(future);
 	            }

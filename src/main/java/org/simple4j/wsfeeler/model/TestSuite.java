@@ -2,15 +2,20 @@ package org.simple4j.wsfeeler.model;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
+
+import javax.management.RuntimeErrorException;
 
 import org.simple4j.wsclient.exception.SystemException;
 import org.simple4j.wsfeeler.core.ConfigLoader;
@@ -19,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import bsh.EvalError;
 
@@ -26,15 +32,28 @@ public class TestSuite
 {
 	private static Logger logger = LoggerFactory.getLogger(TestSuite.class);
 	
-	private String testSuiteClasspathRoot = "/wstestsuite"; 
+	private String testSuiteRoot = "/wstestsuite"; 
 	private Map<String, Object> testSuiteVariables = null;
 	private List<TestCase> testCases = null;
 	private String includesTestCasesRegex = null;
 	private String excludesTestCasesRegex = null;
+	private int testCaseExecutorThreadPoolSize = 5;
 	private ApplicationContext mainApplicationContext = null;
 	private File testSuiteDirectory = null;
+	private boolean isClasspathTestSuiteRoot;
 	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor(null);
     private List<TestCase> failedTestCases = new ArrayList<TestCase>();
+
+
+	public String getTestSuiteRoot()
+	{
+		return testSuiteRoot;
+	}
+
+	public void setTestSuiteRoot(String testSuiteRoot)
+	{
+		this.testSuiteRoot = testSuiteRoot;
+	}
 
 	public File getTestSuiteDirectory()
 	{
@@ -54,6 +73,40 @@ public class TestSuite
 	public void setMainApplicationContext(ApplicationContext mainApplicationContext)
 	{
 		this.mainApplicationContext = mainApplicationContext;
+	}
+
+	public String getIncludesTestCasesRegex()
+	{
+		return includesTestCasesRegex;
+	}
+
+	public void setIncludesTestCasesRegex(String includesTestCasesRegex)
+	{
+		if(includesTestCasesRegex!= null && includesTestCasesRegex.trim().length()<=0)
+			this.includesTestCasesRegex = null;
+		this.includesTestCasesRegex = includesTestCasesRegex;
+	}
+
+	public String getExcludesTestCasesRegex()
+	{
+		return excludesTestCasesRegex;
+	}
+
+	public void setExcludesTestCasesRegex(String excludesTestCasesRegex)
+	{
+		if(excludesTestCasesRegex!= null && excludesTestCasesRegex.trim().length()<=0)
+			this.excludesTestCasesRegex = null;
+		this.excludesTestCasesRegex = excludesTestCasesRegex;
+	}
+
+	public int getTestCaseExecutorThreadPoolSize()
+	{
+		return testCaseExecutorThreadPoolSize;
+	}
+
+	public void setTestCaseExecutorThreadPoolSize(int testCaseExecutorThreadPoolSize)
+	{
+		this.testCaseExecutorThreadPoolSize = testCaseExecutorThreadPoolSize;
 	}
 
 	private void initVariables()
@@ -76,7 +129,7 @@ public class TestSuite
 		}
 	}
 
-	public void loadCustomVariables()
+	private void loadCustomVariables()
 	{
         InputStream variablesStream = null;
         try
@@ -118,9 +171,16 @@ public class TestSuite
         
 	}
 
-	public void loadConnectors()
+	private void loadConnectors()
 	{
-		mainApplicationContext = new ClassPathXmlApplicationContext(this.testSuiteClasspathRoot+"/connectors/main-appContext.xml");
+		if(isClasspathTestSuiteRoot)
+		{
+			mainApplicationContext = new ClassPathXmlApplicationContext(this.testSuiteRoot+"/connectors/main-appContext.xml");
+		}
+		else
+		{
+			mainApplicationContext = new FileSystemXmlApplicationContext("file:"+this.testSuiteDirectory.getAbsolutePath()+File.separator+"connectors"+File.separator+"main-appContext.xml");
+		}
 	}
 
 	public boolean execute()
@@ -128,6 +188,7 @@ public class TestSuite
 		this.initPath();
 		this.initVariables();
 		this.loadCustomVariables();
+		this.loadIncludesExcludes();
 		this.loadConnectors();
 		File testcasesDir = new File(this.testSuiteDirectory,"/testcases");
 		this.testCases = testCaseExecutor.execute(testcasesDir, this);
@@ -140,11 +201,79 @@ public class TestSuite
 //        File[] testcaseDirs = testcasesDir.listFiles();
 	}
 
-	private void initPath()
+	private void loadIncludesExcludes()
 	{
-		this.testSuiteDirectory = ConfigLoader.getClassPathFile(this.testSuiteClasspathRoot);
+		
+		Properties includesExcludes = new Properties();
+		InputStream is = null;
+		String filename = "includesExcludes.properties";
+		try
+		{
+			File file = new File(this.testSuiteDirectory, filename);
+			if(file.exists() && file.isFile())
+			{
+				is = new FileInputStream(file);
+				includesExcludes.load(is);
+				this.includesTestCasesRegex = includesExcludes.getProperty("includesTestCasesRegex");
+				this.excludesTestCasesRegex = includesExcludes.getProperty("excludesTestCasesRegex");
+			}
+		} catch (IOException e)
+		{
+			throw new RuntimeException("Exception whiel loading "+filename, e);
+		}
+		finally
+		{
+			if(is != null)
+			{
+				try
+				{
+					is.close();
+				} catch (IOException e)
+				{
+					logger.warn("Exception while closing "+filename, e);
+				}
+			}
+		}
+		
 	}
 
+	private void initPath()
+	{
+		this.isClasspathTestSuiteRoot = true;
+		this.testSuiteDirectory = ConfigLoader.getClassPathFile(this.testSuiteRoot);
+		if(this.testSuiteDirectory == null || !this.testSuiteDirectory.exists())
+		{
+			this.testSuiteDirectory = new File(this.testSuiteRoot);
+			this.isClasspathTestSuiteRoot = false;
+		}
+		
+		if(!this.testSuiteDirectory.exists())
+		{
+			throw new RuntimeException("Testsuite directory does not exist:"+this.testSuiteDirectory);
+		}
+
+		if(!this.testSuiteDirectory.isDirectory())
+		{
+			throw new RuntimeException("Testsuite root is not a directory:"+this.testSuiteDirectory);
+		}
+	}
+
+	public boolean canExecute(String testCaseName)
+	{
+		boolean ret = false;
+		
+		if(testCaseName == null)
+			return ret;
+		
+		if(this.includesTestCasesRegex != null && testCaseName.matches(this.includesTestCasesRegex))
+			ret = true;
+		
+		if(this.excludesTestCasesRegex != null && testCaseName.matches(this.excludesTestCasesRegex))
+			ret = false;
+		
+		return ret;
+	}
+	
 	public Object getTestSuiteVariableValue(String variableName)
 	{
 		if(this.testSuiteVariables == null)
