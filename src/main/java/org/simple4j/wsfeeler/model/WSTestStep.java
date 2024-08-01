@@ -94,6 +94,7 @@ public class WSTestStep extends TestStep
 	        if(outputPropertiesFile.exists())
 	        {
 	            testStepOutputVariables = ConfigLoader.loadVariables(outputPropertiesFile, this.parent);
+	            logger.info("loaded properties:{}", testStepOutputVariables);
 	            if(testStepOutputVariables.containsKey("ASSERT"))
 	            {
 		            assertionExpression = ""+testStepOutputVariables.get("ASSERT");
@@ -116,7 +117,7 @@ public class WSTestStep extends TestStep
 	                }
 					try
 					{
-	                	logger.info("setting key: {} value: {}", entry.getKey(), value);
+	                	logger.info("setting key to intrepreter: {} value: {}", entry.getKey(), value);
 						bsh.set(entry.getKey(), ""+value);
 					} catch (EvalError e)
 	        		{

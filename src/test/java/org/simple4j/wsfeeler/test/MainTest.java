@@ -15,8 +15,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.simple4j.wsfeeler.model.TestSuite;
+import org.simple4j.wsfeeler.pojoashttp.HTTPExposer;
 import org.simple4j.wsfeeler.test.ws.UserVO;
 import org.simple4j.wsfeeler.test.ws.UserWS;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,7 +36,16 @@ public class MainTest
 		startDB();
 		
 		startWebService();
+		
+		exposePOJOAsHTTPService();
 
+	}
+
+	private static void exposePOJOAsHTTPService()
+	{
+		ApplicationContext ac = new ClassPathXmlApplicationContext("ws/main-appCntxt.xml");
+		HTTPExposer httpExposer = new HTTPExposer(ac);
+		httpExposer.expose();
 	}
 
 	private static void startWebService()

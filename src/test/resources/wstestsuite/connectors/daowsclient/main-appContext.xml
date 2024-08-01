@@ -10,7 +10,16 @@
                         http://www.springframework.org/schema/util
 						http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
-	<import resource="userwsclient/main-appContext.xml" />
-	<import resource="daowsclient/main-appContext.xml" />
+	<import resource="post.xml" />
+
+	<bean id="daoHttpWSClient" class="org.simple4j.wsclient.http.HTTPWSClient">
+		<property name="connectionTimeOutMillis" value="1000"></property>
+		<property name="maxConnectionsPerHost" value="2"></property>
+		<property name="numberOfRetries" value="2"></property>
+		<property name="serviceHostName" value="localhost"></property>
+		<property name="servicePortNumber" value="9090"></property>
+		<property name="serviceProtocol" value="http"></property>
+		<property name="socketTimeOutMillis" value="1000"></property>
+	</bean>
  
 </beans>

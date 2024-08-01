@@ -13,6 +13,8 @@ public class MethodParameterJSON {
 
 	Map valueJSON = null;
 
+	Map valueJSONx[] = null;
+
 	public String getClassName() {
 		return className;
 	}
@@ -45,11 +47,24 @@ public class MethodParameterJSON {
 		this.valueJSON = valueJSON;
 	}
 
+	public Map[] getValueJSONx()
+	{
+		return valueJSONx;
+	}
+
+	public void setValueJSONx(Map[] valueJSONx)
+	{
+		this.valueJSONx = valueJSONx;
+	}
+
 	@Override
-	public String toString() {
-		return "MethodParameterJSON [className=" + className + ", value="
-				+ value + ", values=" + Arrays.toString(values)
-				+ ", valueJSON=" + valueJSON + "]";
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append(super.toString()).append(" [className=").append(className).append(", value=").append(value)
+				.append(", values=").append(Arrays.toString(values)).append(", valueJSON=").append(valueJSON)
+				.append(", valueJSONx=").append(Arrays.toString(valueJSONx)).append("]");
+		return builder.toString();
 	}
 
 
