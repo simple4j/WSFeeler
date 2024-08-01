@@ -162,7 +162,7 @@ public class TestCase implements Callable<Boolean>
 		}
 	}
 
-	public void loadCustomVariables()
+	private void loadCustomVariables()
 	{
         InputStream variablesStream = null;
         try

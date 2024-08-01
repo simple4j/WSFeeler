@@ -56,7 +56,7 @@ public class TestSuite
 		this.mainApplicationContext = mainApplicationContext;
 	}
 
-	public void initVariables()
+	private void initVariables()
 	{
 		try
 		{
