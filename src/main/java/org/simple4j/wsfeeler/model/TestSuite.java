@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -193,12 +194,23 @@ public class TestSuite
 		File testcasesDir = new File(this.testSuiteDirectory,"/testcases");
 		this.testCases = testCaseExecutor.execute(testcasesDir, this);
 		
+		this.generateReport();
 		if(this.failedTestCases.size() > 0)
 		{
 			return false;
 		}
 		return true;
-//        File[] testcaseDirs = testcasesDir.listFiles();
+	}
+
+	private void generateReport()
+	{
+		int level=0;
+		for (Iterator<TestCase> iterator = testCases.iterator(); iterator.hasNext();)
+		{
+			TestCase testCase = iterator.next();
+			testCase.generateReport(level);
+		}
+		
 	}
 
 	private void loadIncludesExcludes()
@@ -307,6 +319,15 @@ public class TestSuite
 	public List<TestCase> getFailedTestCases()
 	{
 		return failedTestCases;
+	}
+
+	public StringBuilder getIndentation(int level)
+	{
+		StringBuilder indentation = new StringBuilder();
+		for(int i = 0 ; i < level; i++)
+			indentation.append("   ");
+		
+		return indentation;
 	}
 	
 	

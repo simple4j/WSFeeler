@@ -286,4 +286,35 @@ public class TestCase implements Callable<Boolean>
 				.append(", success=").append(success).append(", subTestCases=").append(subTestCases).append("]");
 		return builder.toString();
 	}
+
+	public void generateReport(int level)
+	{
+		StringBuilder indentation = this.testSuite.getIndentation(level);
+		if(this.success == null)
+		{
+			logger.info("{}SKIPPED {}", indentation, this.name);
+		}
+		else
+		{
+			if(this.success)
+			{
+				logger.info("{}PASSED  {}", indentation, this.name);
+			}
+			else
+			{
+				logger.info("{}FAiLED  {}", indentation, this.name);
+			}
+		}
+		for (Iterator<Entry<String, TestStep>> iterator = this.executedTestSteps.entrySet().iterator(); iterator.hasNext();)
+		{
+			Entry<String, TestStep> entry = iterator.next();
+			entry.getValue().generateReport(level+1);
+		}
+		
+		for (Iterator<TestCase> iterator = subTestCases.iterator(); iterator.hasNext();)
+		{
+			TestCase testCase = iterator.next();
+			testCase.generateReport(level+1);
+		}
+	}
 }

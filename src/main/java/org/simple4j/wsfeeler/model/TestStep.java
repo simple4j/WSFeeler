@@ -74,13 +74,24 @@ public abstract class TestStep
 		return builder.toString();
 	}
 
-//	@Override
-//	public String toString()
-//	{
-//		StringBuilder builder = new StringBuilder();
-//		builder.append(super.toString()).append(" [name=").append(name).append(", testStepInputFile=").append(testStepInputFile)
-//				.append(", testStepVariables=").append(testStepVariables).append(", success=").append(success)
-//				.append("]");
-//		return builder.toString();
-//	}
+	public void generateReport(int level)
+	{
+		StringBuilder indentation = this.testSuite.getIndentation(level);
+		if(this.success == null)
+		{
+			logger.info("{}SKIPPED {}", indentation, this.shortName);
+		}
+		else
+		{
+			if(this.success)
+			{
+				logger.info("{}PASSED  {}", indentation, this.shortName);
+			}
+			else
+			{
+				logger.info("{}FAiLED  {}", indentation, this.shortName);
+			}
+		}
+	}
+
 }
