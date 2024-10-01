@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 
 import org.simple4j.wsclient.caller.Caller;
 import org.simple4j.wsclient.caller.CallerFactory;
-import org.simple4j.wsclient.caller.FreeMarkerJSONCallerFactory;
 import org.simple4j.wsclient.exception.SystemException;
 import org.simple4j.wsclient.util.CollectionsPathRetreiver;
 import org.simple4j.wsfeeler.core.ConfigLoader;

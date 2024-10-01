@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -311,10 +311,13 @@ public class TestCase implements Callable<Boolean>
 			entry.getValue().generateReport(level+1);
 		}
 		
-		for (Iterator<TestCase> iterator = subTestCases.iterator(); iterator.hasNext();)
+		if(subTestCases != null)
 		{
-			TestCase testCase = iterator.next();
-			testCase.generateReport(level+1);
+			for (Iterator<TestCase> iterator = subTestCases.iterator(); iterator.hasNext();)
+			{
+				TestCase testCase = iterator.next();
+				testCase.generateReport(level+1);
+			}
 		}
 	}
 }

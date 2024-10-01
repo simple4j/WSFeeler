@@ -19,7 +19,7 @@
 		<property name="maxConnectionsPerHost" value="2"></property>
 		<property name="numberOfRetries" value="2"></property>
 		<property name="serviceHostName" value="localhost"></property>
-		<property name="servicePortNumber" value="9090"></property>
+		<property name="servicePortNumber" value="2001"></property>
 		<property name="serviceProtocol" value="http"></property>
 		<property name="socketTimeOutMillis" value="1000"></property>
 	</bean>

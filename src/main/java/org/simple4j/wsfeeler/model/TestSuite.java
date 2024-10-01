@@ -2,10 +2,8 @@ package org.simple4j.wsfeeler.model;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -15,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-
-import javax.management.RuntimeErrorException;
 
 import org.simple4j.wsclient.exception.SystemException;
 import org.simple4j.wsfeeler.core.ConfigLoader;

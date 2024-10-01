@@ -3,7 +3,10 @@ package org.simple4j.wsfeeler.test;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.simple4j.wsfeeler.model.TestCase;
 import org.simple4j.wsfeeler.model.TestSuite;
 import org.simple4j.wsfeeler.pojoashttp.HTTPExposer;
 import org.simple4j.wsfeeler.test.ws.UserVO;
@@ -103,7 +107,16 @@ public class MainTest
 	{
 		TestSuite ts = new TestSuite();
 		boolean success = ts.execute();
-		Assert.assertTrue("Failed testcases are :" + ts.getFailedTestCases(), success);
+		List<String> tcPaths = new ArrayList<String>();
+		if(ts.getFailedTestCases() != null)
+		{
+			for (Iterator<TestCase> iterator = ts.getFailedTestCases().iterator(); iterator.hasNext();)
+			{
+				TestCase tc = (TestCase) iterator.next();
+				tcPaths.add(tc.name);
+			}
+		}
+		Assert.assertTrue("Failed testcases are :" + tcPaths, success);
 	}
 
 }

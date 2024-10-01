@@ -33,7 +33,7 @@ public class UserWS
 		}
 		ObjectMapper om = new ObjectMapper();
 
-		Spark.port(9090);
+		Spark.port(2001);
 		Spark.get("/user/:userPK", (req, res) ->
 			{
 				res.header("Content-Type", "application/JSON");
