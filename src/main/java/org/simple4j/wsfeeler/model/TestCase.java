@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import bsh.EvalError;
 
+/**
+ * This class represents a test case in the test suite
+ */
 public class TestCase implements Callable<Boolean>
 {
 	private static Logger logger = LoggerFactory.getLogger(TestCase.class);

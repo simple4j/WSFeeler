@@ -25,6 +25,13 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import bsh.EvalError;
 
+/**
+ * This class represents the test suite and entry point to trigger execution of test suite.
+ * TestSuite consists of nested hierarchy of TestCases which can contain TestSteps.
+ * Sibling test cases are executed in parallel and the test steps are executed in ascending sequence.
+ * 
+ * More details about the usage and structure of the test suite are documented in the sample test cases under src/test/resources
+ */
 public class TestSuite
 {
 	private static Logger logger = LoggerFactory.getLogger(TestSuite.class);
@@ -180,6 +187,11 @@ public class TestSuite
 		}
 	}
 
+	/**
+	 * This is the entrypoint method to trigger execution of the test suite
+	 * 
+	 * @return - success boolean response
+	 */
 	public boolean execute()
 	{
 		this.initPath();

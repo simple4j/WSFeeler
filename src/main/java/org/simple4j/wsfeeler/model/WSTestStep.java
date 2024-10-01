@@ -18,6 +18,9 @@ import org.springframework.context.ApplicationContext;
 import bsh.EvalError;
 import bsh.Interpreter;
 
+/**
+ * This class is a concrete implementation of test step for web service connection
+ */
 public class WSTestStep extends TestStep
 {
 

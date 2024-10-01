@@ -4,6 +4,9 @@ import org.simple4j.wsfeeler.model.TestSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This is the main method entry point class for stand alone execution of the test suite
+ */
 public class Main
 {
 	private static Logger logger = LoggerFactory.getLogger(Main.class);

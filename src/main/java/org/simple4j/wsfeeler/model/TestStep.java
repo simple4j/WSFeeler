@@ -7,6 +7,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class represents an abstract test step. Concrete implementation could be for a specific connector/protocol
+ */
 public abstract class TestStep
 {
 	private static Logger logger = LoggerFactory.getLogger(TestStep.class);

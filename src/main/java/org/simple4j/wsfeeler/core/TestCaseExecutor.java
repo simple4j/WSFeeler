@@ -14,6 +14,9 @@ import org.simple4j.wsfeeler.model.TestSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class has the executor service to manage parallel execution of test cases and collection of results.
+ */
 public class TestCaseExecutor
 {
 	private static Logger logger = LoggerFactory.getLogger(TestCaseExecutor.class);

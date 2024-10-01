@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import bsh.EvalError;
 import bsh.Interpreter;
 
+/**
+ * This is a utility class with methods to load test step and test case properties, deference variables.
+ */
 public class ConfigLoader
 {
 	private static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
