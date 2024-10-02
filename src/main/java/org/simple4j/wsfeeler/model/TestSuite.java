@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +31,8 @@ import bsh.EvalError;
  * TestSuite consists of nested hierarchy of TestCases which can contain TestSteps.
  * Sibling test cases are executed in parallel and the test steps are executed in ascending sequence.
  * 
- * More details about the usage and structure of the test suite are documented in the sample test cases under src/test/resources
+ * More details about the usage and structure of the test suite are documented in readme files and 
+ * test step configuration files under src/test/resources
  */
 public class TestSuite
 {
@@ -260,7 +262,7 @@ public class TestSuite
 	private void initPath()
 	{
 		this.isClasspathTestSuiteRoot = true;
-		this.testSuiteDirectory = ConfigLoader.getClassPathFile(this.testSuiteRoot);
+		this.testSuiteDirectory = getClassPathFile(this.testSuiteRoot);
 		if(this.testSuiteDirectory == null || !this.testSuiteDirectory.exists())
 		{
 			this.testSuiteDirectory = new File(this.testSuiteRoot);
@@ -276,6 +278,14 @@ public class TestSuite
 		{
 			throw new RuntimeException("Testsuite root is not a directory:"+this.testSuiteDirectory);
 		}
+	}
+
+	private File getClassPathFile(String path)
+	{
+		URL resource = ConfigLoader.class.getResource(path);
+		if (resource == null || resource.getFile() == null)
+			return null;
+		return new File(resource.getFile());
 	}
 
 	public boolean canExecute(String testCaseName)

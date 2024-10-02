@@ -3,6 +3,9 @@ package org.simple4j.wsfeeler.pojoashttp;
 import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * HTTPExposer web service request body method parameter structure
+ */
 public class MethodParameterJSON {
 
 	String className = null;
@@ -15,6 +18,13 @@ public class MethodParameterJSON {
 
 	Map valueJSONx[] = null;
 
+	/**
+	 * Fully qualified class name of the parameter type
+	 * To call methods with primitive types, the client need to use TYPE field.
+	 * 
+	 * Here is an example
+	 * {"beanId":"someBean","methodName":"someMethod", "methodParameters" : [{"className":"java.lang.String","value":"someStringParam"},{"className":"java.lang.Integer.TYPE","value":"100"}]}
+	 */
 	public String getClassName() {
 		return className;
 	}
@@ -23,6 +33,9 @@ public class MethodParameterJSON {
 		this.className = className;
 	}
 
+	/**
+	 * value for the parameter when its not an array and not custom class
+	 */
 	public String getValue() {
 		return value;
 	}
@@ -31,6 +44,9 @@ public class MethodParameterJSON {
 		this.value = value;
 	}
 
+	/**
+	 * value for the parameter when its an array and not custom class
+	 */
 	public String[] getValues() {
 		return values;
 	}
@@ -39,6 +55,9 @@ public class MethodParameterJSON {
 		this.values = values;
 	}
 
+	/**
+	 * value for the parameter when its not an array and is a custom class
+	 */
 	public Map getValueJSON() {
 		return valueJSON;
 	}
@@ -47,6 +66,9 @@ public class MethodParameterJSON {
 		this.valueJSON = valueJSON;
 	}
 
+	/**
+	 * value for the parameter when its an array and is a custom class
+	 */
 	public Map[] getValueJSONx()
 	{
 		return valueJSONx;

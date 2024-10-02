@@ -2,6 +2,9 @@ package org.simple4j.wsfeeler.pojoashttp;
 
 import java.util.Arrays;
 
+/**
+ * HTTPExposer web service request body structure
+ */
 public class RequestJSON {
 
 	String beanId = null;
@@ -10,6 +13,9 @@ public class RequestJSON {
 
 	MethodParameterJSON[] methodParameters = null;
 
+	/**
+	 * Bean id of the bean in the application context whose method will be invoked
+	 */
 	public String getBeanId() {
 		return beanId;
 	}
@@ -18,6 +24,9 @@ public class RequestJSON {
 		this.beanId = beanId;
 	}
 
+	/**
+	 * Name of the method which will be invoked
+	 */
 	public String getMethodName() {
 		return methodName;
 	}
@@ -26,6 +35,9 @@ public class RequestJSON {
 		this.methodName = methodName;
 	}
 
+	/**
+	 * Method parameters as array of MethodParameterJSON objects
+	 */
 	public MethodParameterJSON[] getMethodParameters() {
 		return methodParameters;
 	}

@@ -15,6 +15,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import spark.Spark;
 
+/**
+ * This class can be used to expose any method in any bean in a Spring ApplicationContext as a HTTP service
+ */
 public class HTTPExposer
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -24,19 +27,34 @@ public class HTTPExposer
             .serializationInclusion(Include.NON_NULL)
             .build();
 
+    /**
+     * org.springframework.context.ApplicationContext instance from which the bean methods are exposed
+     */
     private ApplicationContext context;
+    
     private int listenerPortNumber = -1;
+    
     private int listenerThreadMax = 100;
+    
     private int listenerThreadMin = 1;
+
     private int listenerIdleTimeoutMillis = 60000;
+    
     private String urlBase = "/pojoashttp";
     
+    /**
+     * Constructor with org.springframework.context.ApplicationContext instance as parameter
+     * @param context - org.springframework.context.ApplicationContext instance
+     */
     public HTTPExposer(ApplicationContext context)
     {
     	super();
     	this.context = context;
     }
     
+    /**
+     * This method will turn on the listener to expose bean methods as web service
+     */
     public void expose()
     {
     	if(listenerPortNumber > 0)
@@ -127,6 +145,9 @@ public class HTTPExposer
         });
     }
 
+    /**
+     * Port number to start the listener at
+     */
 	public int getListenerPortNumber()
 	{
 		return listenerPortNumber;
@@ -137,6 +158,9 @@ public class HTTPExposer
 		this.listenerPortNumber = listenerPortNumber;
 	}
 
+    /**
+     * Max thread count for the listener to serve requests
+     */
 	public int getListenerThreadMax()
 	{
 		return listenerThreadMax;
@@ -147,6 +171,9 @@ public class HTTPExposer
 		this.listenerThreadMax = listenerThreadMax;
 	}
 
+    /**
+     * Min thread count for the listener to serve requests
+     */
 	public int getListenerThreadMin()
 	{
 		return listenerThreadMin;
@@ -157,6 +184,9 @@ public class HTTPExposer
 		this.listenerThreadMin = listenerThreadMin;
 	}
 
+    /**
+     * Idle timeout in milli seconds for the listener thread to be destroyed to reach min thread count
+     */
 	public int getListenerIdleTimeoutMillis()
 	{
 		return listenerIdleTimeoutMillis;
@@ -167,6 +197,9 @@ public class HTTPExposer
 		this.listenerIdleTimeoutMillis = listenerIdleTimeoutMillis;
 	}
 
+    /**
+     * URL base path for the listener to expose the service
+     */
 	public String getUrlBase()
 	{
 		return urlBase;

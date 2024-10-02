@@ -23,6 +23,13 @@ public class TestCaseExecutor
 	private ExecutorService testCasesExecutorService = null;
 	private TestCase parent = null;
 
+	/**
+	 * Constructor with TestCase object as the parameter.
+	 * This TestCaseExecutor object will execute child TestCases and TestSteps.
+	 * TestCases will be executed in parallel and TestSteps will be executed in sequence.
+	 * 
+	 * @param parent - parent TestCase object
+	 */
 	public TestCaseExecutor(TestCase parent)
 	{
 		super();
@@ -38,6 +45,13 @@ public class TestCaseExecutor
 		return this.testCasesExecutorService;
 	}
 	
+	/**
+	 * Entry point method for the executor.
+	 * 
+	 * @param parentTestCasesDir
+	 * @param testSuite
+	 * @return - List of sub test casees
+	 */
 	public List<TestCase> execute(File parentTestCasesDir, TestSuite testSuite)
 	{
 		logger.info("Entering execute {}", parentTestCasesDir);

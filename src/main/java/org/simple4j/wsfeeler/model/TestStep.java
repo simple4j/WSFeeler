@@ -13,15 +13,42 @@ import org.slf4j.LoggerFactory;
 public abstract class TestStep
 {
 	private static Logger logger = LoggerFactory.getLogger(TestStep.class);
-	
+
+	/**
+	 * Name of the test step
+	 */
 	public String name = null;
+	
+	/**
+	 * Short name of the test step. This will be the input properties filename without the suffix -input.properties
+	 */
 	public String shortName = null;
+	
+	/**
+	 * File object of the input properties file
+	 */
 	public File testStepInputFile = null;
+	
+	/**
+	 * Parent test case object
+	 */
 	public TestCase parent = null;
+	
+	/**
+	 * Test suite object
+	 */
 	public TestSuite testSuite = null;
+	
+	/**
+	 * Test step variables
+	 */
 	public Map<String, Object> testStepVariables = null;
 	private Boolean success = null;
 	
+	/**
+	 * Result of the test step execution
+	 * @return - true if successful
+	 */
 	public Boolean getSuccess()
 	{
 		return success;
@@ -47,11 +74,18 @@ public abstract class TestStep
 	}
 
 	/**
+	 * Abstract entry point method to execute the test step
 	 * 
 	 * @return true if success
 	 */
 	public abstract boolean execute();
 	
+	/**
+	 * Get test step property for cross reference
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public Object getProperty(String key)
 	{
 		logger.info("Entering getProperty {}", key);
@@ -60,6 +94,9 @@ public abstract class TestStep
 		return ret;
 	}
 
+	/**
+	 * Factory method to get an instance of test step
+	 */
 	public static TestStep getInstance(String typeOfStep, Map<String, Object> testStepInputVariables, 
 			File testStepInputFile, TestCase parent, TestSuite testSuite) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException
 	{
@@ -77,6 +114,10 @@ public abstract class TestStep
 		return builder.toString();
 	}
 
+	/**
+	 * Generates report and prints out in the logger
+	 * @param level
+	 */
 	public void generateReport(int level)
 	{
 		StringBuilder indentation = this.testSuite.getIndentation(level);

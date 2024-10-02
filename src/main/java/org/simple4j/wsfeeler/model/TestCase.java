@@ -34,16 +34,48 @@ public class TestCase implements Callable<Boolean>
 {
 	private static Logger logger = LoggerFactory.getLogger(TestCase.class);
 	
+	/**
+	 * Name of the test case
+	 */
 	public String name = null;
+	
+	/**
+	 * Directory of the test case
+	 */
 	public File testCaseDirectory = null;
+	
+	/**
+	 * Parent test case object
+	 */
 	public TestCase parent = null;
+	
+	/**
+	 * Test suite object
+	 */
 	public TestSuite testSuite = null;
+	
+	/**
+	 * Test case variables for cross reference
+	 */
 	public Map<String, Object> testCaseVariables = null;
+	
+	/**
+	 * Map of test step name and test step object
+	 */
 	public Map<String, TestStep> executedTestSteps = new HashMap<String, TestStep>();
+	
+	/**
+	 * Test case executor to execute child test cases
+	 */
 	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor(this);
+	
 	private Boolean success = null;
 	private List<TestCase> subTestCases = null;
 
+	/**
+	 * Result of the test case execution
+	 * @return - true if successful
+	 */
 	public Boolean getSuccess()
 	{
 		return success;
@@ -57,6 +89,21 @@ public class TestCase implements Callable<Boolean>
 		this.parent = parent;
 	}
 
+	/**
+	 * Entry point method to execute the test case
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @throws ClassNotFoundException
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
 	public boolean execute() throws IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, InterruptedException, ExecutionException
 	{
 		logger.info("Inside execute:{}", name);
@@ -222,6 +269,12 @@ public class TestCase implements Callable<Boolean>
 		return success;
 	}
 
+	/**
+	 * Get test case property for cross reference
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public Object getProperty(String key)
 	{
 		logger.info("Entering getProperty {} {}", this.testCaseDirectory, key);
@@ -290,6 +343,10 @@ public class TestCase implements Callable<Boolean>
 		return builder.toString();
 	}
 
+	/**
+	 * Generates report and prints out in the logger
+	 * @param level
+	 */
 	public void generateReport(int level)
 	{
 		StringBuilder indentation = this.testSuite.getIndentation(level);
