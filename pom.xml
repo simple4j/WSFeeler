@@ -23,7 +23,7 @@
 	</developers>
 	<scm>
 		<connection>scm:git:https://github.com/simple4j/WSFeeler.git</connection>
-		<developerConnection>scm:git:https://github.com:simple4j/WSFeeler.git</developerConnection>
+		<developerConnection>scm:git:https://github.com/simple4j/WSFeeler.git</developerConnection>
 		<url>https://github.com/simple4j/WSFeeler</url>
 	  <tag>WSFeeler-24.09.30.0</tag>
 	</scm>
