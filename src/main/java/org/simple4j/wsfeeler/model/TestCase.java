@@ -149,6 +149,8 @@ public class TestCase implements Callable<Boolean>
         List<File> sortTestStepFiles = sortFiles(testStepFiles);
 
         logger.info("found teststeps:{}", sortTestStepFiles);
+        if(sortTestStepFiles == null || sortTestStepFiles.size() == 0)
+        	success = true;
         for (int i = 0; i < sortTestStepFiles.size(); i++)
         {
             File testStepFile = sortTestStepFiles.get(i);
