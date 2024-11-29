@@ -82,7 +82,13 @@ public class WSTestStep extends TestStep
 	        	this.testStepVariables.put(entry.getKey(), entry.getValue());
 	        	try
 				{
-	        		logger.debug("Setting {} : {}",entry.getKey(), entry.getValue());
+	        		Class<? extends Object> class1 = null;
+       				if(entry.getValue() != null)
+	        		{
+       					class1 = entry.getValue().getClass();
+	        		}
+					logger.debug("Setting {} : {} : {}",entry.getKey(), entry.getValue(), 
+	        				class1);
 					bsh.set(entry.getKey(), entry.getValue());
 				} catch (EvalError e)
 				{
@@ -107,6 +113,7 @@ public class WSTestStep extends TestStep
 	        {
 	            for (Entry<String, Object> entry : testStepOutputVariables.entrySet()) {
 	            	CollectionsPathRetreiver cpr = new CollectionsPathRetreiver();
+	            	logger.info("fetching property|{}| from |{}|",""+entry.getValue(), response);
 	                List nestedProperty = cpr.getNestedProperty(response, ""+entry.getValue());
 	                Object value = nestedProperty;
 	                if(nestedProperty.size() == 0)

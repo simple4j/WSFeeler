@@ -4,7 +4,7 @@
 	<groupId>org.simple4j</groupId>
 	<artifactId>WSFeeler</artifactId>
 	<packaging>jar</packaging>
-	<version>24.11.24.1-SNAPSHOT</version>
+	<version>24.11.28.0-SNAPSHOT</version>
 	<name>WSFeeler</name>
 	<url>https://github.com/simple4j/WSFeeler</url>
 	<licenses>
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>org.simple4j</groupId>
 			<artifactId>WSClient</artifactId>
-			<version>24.09.19.2</version>
+			<version>24.11.28.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

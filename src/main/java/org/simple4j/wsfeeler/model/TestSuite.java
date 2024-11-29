@@ -214,11 +214,20 @@ public class TestSuite
 
 	private void generateReport()
 	{
-		int level=0;
-		for (Iterator<TestCase> iterator = testCases.iterator(); iterator.hasNext();)
+		try
 		{
-			TestCase testCase = iterator.next();
-			testCase.generateReport(level);
+			logger.info("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WSFeeler test report start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+			int level=0;
+			for (Iterator<TestCase> iterator = testCases.iterator(); iterator.hasNext();)
+			{
+				TestCase testCase = iterator.next();
+				testCase.generateReport(level);
+			}
+		}
+		finally
+		{
+			logger.info("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  WSFeeler test report end  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+			
 		}
 		
 	}
