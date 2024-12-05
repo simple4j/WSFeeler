@@ -55,7 +55,6 @@ public abstract class HTTPExposer
     
     /**
      * This method will turn on the listener to expose bean methods as web service
-     * @return 
      */
     public abstract void expose();
     
