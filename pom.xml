@@ -4,7 +4,7 @@
 	<groupId>org.simple4j</groupId>
 	<artifactId>WSFeeler</artifactId>
 	<packaging>jar</packaging>
-	<version>24.12.04.0</version>
+	<version>24.12.04.1-SNAPSHOT</version>
 	<name>WSFeeler</name>
 	<url>https://github.com/simple4j/WSFeeler</url>
 	<licenses>
@@ -25,7 +25,7 @@
 		<connection>scm:git:https://github.com/simple4j/WSFeeler.git</connection>
 		<developerConnection>scm:git:https://github.com/simple4j/WSFeeler.git</developerConnection>
 		<url>https://github.com/simple4j/WSFeeler</url>
-	  <tag>WSFeeler-24.12.04.0</tag>
+	  <tag>HEAD</tag>
 	</scm>
 	<distributionManagement>
 		<snapshotRepository>
