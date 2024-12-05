@@ -109,7 +109,8 @@ public class TestCase implements Callable<Boolean>
 		logger.info("Inside execute:{}", name);
 		if(!this.testSuite.canExecute(name))
 		{
-			return success;
+			logger.info("Skipping test case {} because of includesExcludes.properties", name);
+			return true;
 		}
 		initVariables();
 		loadCustomVariables();
@@ -122,7 +123,7 @@ public class TestCase implements Callable<Boolean>
 			
 			for(int i = 0 ; i < subTestCases.size() ; i++)
 			{
-				if(!subTestCases.get(i).success)
+				if(subTestCases.get(i).success != null && !subTestCases.get(i).success)
 				{
 					success = false;
 					return success;
@@ -263,11 +264,11 @@ public class TestCase implements Callable<Boolean>
         {
             logger.info("SKIPPING: Testcase {}",this.name);
         }
-
-        if(!success)
-        {
-            logger.info("FAILURE: Testcase {}",this.name);
-        }
+        else
+	        if(!success)
+	        {
+	            logger.info("FAILURE: Testcase {}",this.name);
+	        }
 		return success;
 	}
 

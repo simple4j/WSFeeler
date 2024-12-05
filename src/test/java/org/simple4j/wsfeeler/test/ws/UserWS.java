@@ -100,6 +100,29 @@ public class UserWS
 				return "{}";
 			});
 
+		Spark.post("/userjson", (req, res) ->
+			{
+				logger.info("inside user post");
+				if (req.contentLength() > 2048)
+					throw new RuntimeException("content too large");
+				res.header("Content-Type", "application/JSON");
+				String bodyStr = req.body();
+				UserVO userVO = om.readValue(bodyStr, UserVO.class);
+
+				// input validation start
+				StringBuilder sb = validateUserVO(userVO);
+				if (sb.length() > 0)
+				{
+					res.status(412);
+					return "{\"errorReason\":[\""+sb.toString() + "\"]}";
+				}
+				// input validation end
+
+				userDAO.updateUser(userVO);
+				res.status(200);
+				return "{}";
+			});
+
 	}
 
 	private static StringBuilder validateUserVO(UserVO userVO)

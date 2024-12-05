@@ -1,14 +1,9 @@
 package org.simple4j.wsfeeler.test;
 
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import org.hsqldb.server.Server;
 import org.junit.After;
@@ -19,15 +14,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.simple4j.wsfeeler.model.TestCase;
 import org.simple4j.wsfeeler.model.TestSuite;
-import org.simple4j.wsfeeler.pojoashttp.HTTPExposer;
-import org.simple4j.wsfeeler.test.ws.UserVO;
 import org.simple4j.wsfeeler.test.ws.UserWS;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import spark.Spark;
 
 public class MainTest
 {
@@ -47,9 +34,10 @@ public class MainTest
 
 	private static void exposePOJOAsHTTPService()
 	{
-		ApplicationContext ac = new ClassPathXmlApplicationContext("ws/main-appCntxt.xml");
-		HTTPExposer httpExposer = new HTTPExposer(ac);
-		httpExposer.expose();
+//		ApplicationContext ac = new ClassPathXmlApplicationContext("ws/main-appCntxt.xml");
+//		SparkJavaHTTPExposer sparkJavaHTTPExposer = new SparkJavaHTTPExposer(ac);
+//		sparkJavaHTTPExposer.expose();
+		
 	}
 
 	private static void startWebService()

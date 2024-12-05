@@ -44,6 +44,7 @@ public class ConfigLoader
 			if (prefix == null)
 				prefix = "";
 			Properties loadedVariables = new Properties();
+			//TODO : Need to cache loaded files and use it to avoid repeated IO
 			loadedVariables.load(variablesStream);
 			Map<String, Object> ret = new HashMap<String, Object>();
 			if (globalVariables2 != null)
@@ -116,6 +117,7 @@ public class ConfigLoader
 		{
 			variablesStream = new FileInputStream(testStepFile);
 			Properties loadedVariables = new Properties();
+			//TODO : Need to cache loaded files and use it to avoid repeated IO
 			loadedVariables.load(variablesStream);
 			logger.info("loadedVariables:{}", loadedVariables);
 			Map<String, Object> ret = new HashMap<String, Object>();
