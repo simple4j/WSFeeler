@@ -62,6 +62,8 @@ public class WSTestStep extends TestStep
 	        logger.info("response from service call:"+response);
 	
 	        Interpreter bsh = new Interpreter();
+			bsh.setOut(System.out);
+			bsh.setErr(System.err);
     		logger.info("Setting step variables");
 	        for (Entry<String, Object> entry : this.testStepVariables.entrySet())
 	        {

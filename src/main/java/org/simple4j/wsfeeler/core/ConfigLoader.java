@@ -53,6 +53,8 @@ public class ConfigLoader
 			}
 
 			Interpreter bsh = new Interpreter();
+			bsh.setOut(System.out);
+			bsh.setErr(System.err);
 			if (globalVariables2 != null)
 			{
 				for (Entry<String, Object> entry : globalVariables2.entrySet())

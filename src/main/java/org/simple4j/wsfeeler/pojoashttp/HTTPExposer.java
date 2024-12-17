@@ -3,6 +3,7 @@ package org.simple4j.wsfeeler.pojoashttp;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import org.apache.commons.beanutils.ConvertUtils;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * This class can be used to expose any method in any bean in a Spring ApplicationContext as a HTTP service
@@ -51,6 +53,7 @@ public abstract class HTTPExposer
     {
     	super();
     	this.context = context;
+    	OBJECT_MAPPER.registerModule(new JavaTimeModule());
     }
     
     /**
@@ -130,8 +133,10 @@ public abstract class HTTPExposer
 		    }
 		}
 
-		LOGGER.info("getting method instance");
-		Method method = bean.getClass().getMethod(requestJSON.getMethodName(), parameterTypes);
+		Class<? extends Object> class1 = bean.getClass();
+		LOGGER.info("getting method instance from object of classes: {}", Arrays.asList(Class.class, class1.getClasses()));
+		LOGGER.info("declared methods are: {}", Arrays.asList(Method.class, class1.getDeclaredMethods()));
+		Method method = class1.getMethod(requestJSON.getMethodName(), parameterTypes);
 		LOGGER.info("got it:{}", method);
 		Object responseObj = method.invoke(bean, parameterValues);
 
