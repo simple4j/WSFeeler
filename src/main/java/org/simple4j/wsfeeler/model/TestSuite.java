@@ -44,12 +44,12 @@ public class TestSuite
 	private String includesTestCasesRegex = null;
 	private String excludesTestCasesRegex = null;
 	private int testCaseExecutorThreadPoolSize = 5;
-	private ApplicationContext mainApplicationContext = null;
+	private ApplicationContext connectorsApplicationContext = null;
 	private File testSuiteDirectory = null;
 	private boolean isClasspathTestSuiteRoot;
 	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor(null);
     private List<TestCase> failedTestCases = new ArrayList<TestCase>();
-
+    private ApplicationContext testApplicationContext = null;
 
 	public String getTestSuiteRoot()
 	{
@@ -71,14 +71,14 @@ public class TestSuite
 		this.testSuiteDirectory = testSuiteDirectory;
 	}
 
-	public ApplicationContext getMainApplicationContext()
+	public ApplicationContext getConnectorsApplicationContext()
 	{
-		return mainApplicationContext;
+		return connectorsApplicationContext;
 	}
 
-	public void setMainApplicationContext(ApplicationContext mainApplicationContext)
+	public void setConnectorsApplicationContext(ApplicationContext mainApplicationContext)
 	{
-		this.mainApplicationContext = mainApplicationContext;
+		this.connectorsApplicationContext = mainApplicationContext;
 	}
 
 	public String getIncludesTestCasesRegex()
@@ -113,6 +113,16 @@ public class TestSuite
 	public void setTestCaseExecutorThreadPoolSize(int testCaseExecutorThreadPoolSize)
 	{
 		this.testCaseExecutorThreadPoolSize = testCaseExecutorThreadPoolSize;
+	}
+
+	public ApplicationContext getTestApplicationContext()
+	{
+		return testApplicationContext;
+	}
+
+	public void setTestApplicationContext(ApplicationContext testApplicationContext)
+	{
+		this.testApplicationContext = testApplicationContext;
 	}
 
 	private void initVariables()
@@ -181,11 +191,11 @@ public class TestSuite
 	{
 		if(isClasspathTestSuiteRoot)
 		{
-			mainApplicationContext = new ClassPathXmlApplicationContext(this.testSuiteRoot+"/connectors/main-appContext.xml");
+			connectorsApplicationContext = new ClassPathXmlApplicationContext(this.testSuiteRoot+"/connectors/main-appContext.xml");
 		}
 		else
 		{
-			mainApplicationContext = new FileSystemXmlApplicationContext("file:"+this.testSuiteDirectory.getAbsolutePath()+File.separator+"connectors"+File.separator+"main-appContext.xml");
+			connectorsApplicationContext = new FileSystemXmlApplicationContext("file:"+this.testSuiteDirectory.getAbsolutePath()+File.separator+"connectors"+File.separator+"main-appContext.xml");
 		}
 	}
 

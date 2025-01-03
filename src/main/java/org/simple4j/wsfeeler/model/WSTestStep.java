@@ -184,13 +184,13 @@ public class WSTestStep extends TestStep
 
 	private Caller getCaller(String callerBeanId)
 	{
-		ApplicationContext ac = this.testSuite.getMainApplicationContext();
+		ApplicationContext ac = this.testSuite.getConnectorsApplicationContext();
 		return ac.getBean(callerBeanId, Caller.class);
 	}
 
 	private CallerFactory getCallerFactory(String callerFactoryBeanId)
 	{
-		ApplicationContext ac = this.testSuite.getMainApplicationContext();
+		ApplicationContext ac = this.testSuite.getConnectorsApplicationContext();
 		return ac.getBean(callerFactoryBeanId, CallerFactory.class);
 	}
 

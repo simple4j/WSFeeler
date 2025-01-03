@@ -3,6 +3,7 @@ package org.simple4j.wsfeeler.core;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -69,36 +70,52 @@ public class TestCaseExecutor
 					return pathname.isDirectory() && pathname.exists();
 				}});
         
-        
-	        List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>(testCaseDirs.length);
-	        List<TestCase> testCases = new ArrayList<TestCase>(testCaseDirs.length);
-	        for (int i = 0; i < testCaseDirs.length; i++) {
-	            logger.info("Submitting :"+testCaseDirs[i]);
-	            if(testCaseDirs[i].isDirectory())
+	        List<File> testCaseDirsList = Arrays.asList(testCaseDirs);
+	        return this.execute(testCaseDirsList, testSuite);
+		}
+		finally
+		{
+			logger.info("Exiting execute {}", parentTestCasesDir);
+		}
+	}
+
+	public List<TestCase> execute(List<File> testCaseDirectories, TestSuite testSuite)
+	{
+		logger.info("Entering execute {}", testCaseDirectories);
+		try
+		{
+	        List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>(testCaseDirectories.size());
+	        List<TestCase> testCases = new ArrayList<TestCase>(testCaseDirectories.size());
+	        for (int i = 0; i < testCaseDirectories.size(); i++) {
+	            logger.info("Submitting :"+testCaseDirectories.get(i));
+	            if(testCaseDirectories.get(i).isDirectory())
 	            {
-	            	TestCase tc = new TestCase(testCaseDirs[i], testSuite, this.parent);
+	            	TestCase tc = new TestCase(testCaseDirectories.get(i), testSuite, this.parent);
 	            	Future<Boolean> future = this.getTestCasesExecutorService(testSuite.getTestCaseExecutorThreadPoolSize()).submit(tc);
 	            	testCases.add(tc);
 	            	futures.add(future);
 	            }
 	        }
 	        
-	        for (int i = 0; i < testCaseDirs.length; i++) {
-	            logger.info("waiting :"+testCaseDirs[i]);
-	            futures.get(i).get();
+	        for (int i = 0; i < testCaseDirectories.size(); i++) {
+	            logger.info("waiting :"+testCaseDirectories.get(i));
+	            try
+				{
+					futures.get(i).get();
+				} catch (InterruptedException e)
+				{
+					throw new RuntimeException(e);
+				} catch (ExecutionException e)
+				{
+					throw new RuntimeException(e);
+				}
 	        }
 	        
 	        return testCases;
-		} catch (InterruptedException e)
-		{
-			throw new RuntimeException(e);
-		} catch (ExecutionException e)
-		{
-			throw new RuntimeException(e);
 		}
 		finally
 		{
-			logger.info("Exiting execute {}", parentTestCasesDir);
+			logger.info("Exiting execute {}", testCaseDirectories);
 		}
 	}
 

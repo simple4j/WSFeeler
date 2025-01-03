@@ -15,7 +15,7 @@ public class UserWS
 {
 
 	private static Logger logger = LoggerFactory.getLogger(UserWS.class);
-	private static ApplicationContext ac;
+	public static ApplicationContext ac;
 
 	public static void start()
 	{

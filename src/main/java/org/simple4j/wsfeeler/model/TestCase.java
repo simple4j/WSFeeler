@@ -7,11 +7,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,39 +32,44 @@ import bsh.EvalError;
 /**
  * This class represents a test case in the test suite
  */
-public class TestCase implements Callable<Boolean>
+public class TestCase implements Callable<Boolean>, ReportGenerator
 {
 	private static Logger logger = LoggerFactory.getLogger(TestCase.class);
 	
 	/**
 	 * Name of the test case
 	 */
-	public String name = null;
+	private String name = null;
+	
+	/**
+	 * shortName is the directory name of the test case directory
+	 */
+	private String shortName = null;
 	
 	/**
 	 * Directory of the test case
 	 */
-	public File testCaseDirectory = null;
+	private File testCaseDirectory = null;
 	
 	/**
 	 * Parent test case object
 	 */
-	public TestCase parent = null;
+	private TestCase parent = null;
 	
 	/**
 	 * Test suite object
 	 */
-	public TestSuite testSuite = null;
+	private TestSuite testSuite = null;
 	
 	/**
 	 * Test case variables for cross reference
 	 */
-	public Map<String, Object> testCaseVariables = null;
+	private Map<String, Object> testCaseVariables = null;
 	
 	/**
 	 * Map of test step name and test step object
 	 */
-	public Map<String, TestStep> executedTestSteps = new HashMap<String, TestStep>();
+	private Map<String, TestStep> executedTestSteps = new HashMap<String, TestStep>();
 	
 	/**
 	 * Test case executor to execute child test cases
@@ -70,7 +77,13 @@ public class TestCase implements Callable<Boolean>
 	private TestCaseExecutor testCaseExecutor = new TestCaseExecutor(this);
 	
 	private Boolean success = null;
-	private List<TestCase> subTestCases = null;
+	
+	private Map<String, TestCase> executedSubTestCases = new HashMap<String, TestCase>();
+	
+	/**
+	 * 
+	 */
+	private List<ReportGenerator> testStepTestCases = null;
 
 	/**
 	 * Result of the test case execution
@@ -81,10 +94,16 @@ public class TestCase implements Callable<Boolean>
 		return success;
 	}
 
+	public String getName()
+	{
+		return name;
+	}
+
 	public TestCase(File testCaseDirectory, TestSuite testSuite, TestCase parent)
 	{
 		this.testSuite = testSuite;
 		this.name = testCaseDirectory.getAbsolutePath().substring(this.testSuite.getTestSuiteDirectory().getAbsolutePath().length());
+		this.shortName = testCaseDirectory.getName();
 		this.testCaseDirectory = testCaseDirectory;
 		this.parent = parent;
 	}
@@ -114,23 +133,85 @@ public class TestCase implements Callable<Boolean>
 		}
 		initVariables();
 		loadCustomVariables();
-		
-		this.executeTestSteps();
-		
-		if(success)
+		File[] children = this.testCaseDirectory.listFiles();
+		if(children == null || children.length == 0 )
+			return success;
+		List<File> sortedChildren = this.sortFiles(children);
+//		List<File> sortedTestStepFiles = new ArrayList<File>();
+		List<File> sortedTestCaseDirectories = new ArrayList<File>();
+		for (int i=0 ; i < sortedChildren.size() ; i++)
 		{
-			subTestCases = testCaseExecutor.execute(testCaseDirectory, testSuite);
-			
-			for(int i = 0 ; i < subTestCases.size() ; i++)
+			File child = sortedChildren.get(i);
+			if(child.getName().endsWith("input.properties"))
 			{
-				if(subTestCases.get(i).success != null && !subTestCases.get(i).success)
+				if(sortedTestCaseDirectories.size() > 0)
 				{
-					success = false;
-					return success;
+					executeTestCases(sortedTestCaseDirectories);
+		            if(!success)
+		            {
+		                return success;
+		            }
+					sortedTestCaseDirectories.clear();
 				}
+	            success = executeTestStep(child);
+	            if(!success)
+	            {
+	                this.testSuite.addFailedTestCases(this);
+	                return success;
+	            }
+
+			}
+			else if(child.isDirectory() && child.exists())
+			{
+				sortedTestCaseDirectories.add(child);
 			}
 		}
+		
+		if(sortedTestCaseDirectories.size() > 0)
+		{
+			executeTestCases(sortedTestCaseDirectories);
+            if(success != null && !success)
+            {
+                return success;
+            }
+            else
+            	success = true;
+		}
+
+//		this.executeTestSteps();
+		
+//		if(success)
+//		{
+//			subTestCases = testCaseExecutor.execute(testCaseDirectory, testSuite);
+//			
+//			for(int i = 0 ; i < subTestCases.size() ; i++)
+//			{
+//				if(subTestCases.get(i).success != null && !subTestCases.get(i).success)
+//				{
+//					success = false;
+//					return success;
+//				}
+//			}
+//		}
 		return success;
+	}
+
+	private void executeTestCases(List<File> sortedTestCaseDirectories)
+	{
+		List<TestCase> subTestCases = this.testCaseExecutor.execute(sortedTestCaseDirectories, testSuite);
+		if(this.testStepTestCases == null)
+			this.testStepTestCases = new LinkedList<ReportGenerator>();
+		this.testStepTestCases.addAll(subTestCases);
+		for(int j = 0 ; j < subTestCases.size() ; j++)
+		{
+			TestCase subTestCase = subTestCases.get(j);
+			this.executedSubTestCases.put(subTestCase.shortName, subTestCase);
+			if(subTestCase.success != null && !subTestCase.success)
+			{
+				success = false;
+				
+			}
+		}
 	}
 
 	private void executeTestSteps() throws FileNotFoundException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException
@@ -181,6 +262,10 @@ public class TestCase implements Callable<Boolean>
 			TestStep step = TestStep.getInstance(typeOfStep, testStepInputVariables, testStepFile, this, this.testSuite);
 			this.executedTestSteps.put(step.shortName, step);
         	boolean ret = step.execute();
+        	
+			if(this.testStepTestCases == null)
+				this.testStepTestCases = new LinkedList<ReportGenerator>();
+			this.testStepTestCases.add(step);
 			return ret;
         }
 	}
@@ -317,18 +402,25 @@ public class TestCase implements Callable<Boolean>
 				if(key.indexOf("/") > 1)
 				{
 					logger.info("Contains /");
-					String stepName = key.substring(0,key.indexOf("/"));
-					logger.info("stepName {}", stepName);
-					if(stepName == null || stepName.trim().length() < 1)
+					String stepOrCaseName = key.substring(0,key.indexOf("/"));
+					logger.info("stepName {}", stepOrCaseName);
+					if(stepOrCaseName == null || stepOrCaseName.trim().length() < 1)
 						return null;
 					key = key.substring(key.indexOf("/")+1);
 					logger.info("key {}", key);
 					if(key == null || key.trim().length() < 1)
 						return null;
-					TestStep testStep = this.executedTestSteps.get(stepName);
+					TestStep testStep = this.executedTestSteps.get(stepOrCaseName);
 					logger.info("testStep {}", testStep);
 					if(testStep == null)
-						return null;
+					{
+						if(this.executedSubTestCases.get(stepOrCaseName) == null)
+							return null;
+						else
+						{
+							return this.executedSubTestCases.get(stepOrCaseName).getProperty(key);
+						}
+					}
 					return testStep.getProperty(key);
 				}
 				return this.testCaseVariables.get(key);
@@ -341,8 +433,8 @@ public class TestCase implements Callable<Boolean>
 	{
 		StringBuilder builder = new StringBuilder();
 		builder.append(super.toString()).append(" [name=").append(name).append(", testCaseDirectory=").append(testCaseDirectory)
-				.append(", testCaseVariables=").append(testCaseVariables).append(", executedTestSteps=").append(executedTestSteps)
-				.append(", success=").append(success).append(", subTestCases=").append(subTestCases).append("]");
+				.append(", testCaseVariables=").append(testCaseVariables).append(", executedSubTestCases=").append(executedSubTestCases).append(", executedTestSteps=").append(executedTestSteps)
+				.append(", success=").append(success).append(", testStepTestCases=").append(testStepTestCases).append("]");
 		return builder.toString();
 	}
 
@@ -368,18 +460,18 @@ public class TestCase implements Callable<Boolean>
 				logger.info("{}FAiLED  {}", indentation, this.name);
 			}
 		}
-		for (Iterator<Entry<String, TestStep>> iterator = this.executedTestSteps.entrySet().iterator(); iterator.hasNext();)
-		{
-			Entry<String, TestStep> entry = iterator.next();
-			entry.getValue().generateReport(level+1);
-		}
+//		for (Iterator<Entry<String, TestStep>> iterator = this.executedTestSteps.entrySet().iterator(); iterator.hasNext();)
+//		{
+//			Entry<String, TestStep> entry = iterator.next();
+//			entry.getValue().generateReport(level+1);
+//		}
 		
-		if(subTestCases != null)
+		if(testStepTestCases != null)
 		{
-			for (Iterator<TestCase> iterator = subTestCases.iterator(); iterator.hasNext();)
+			for (Iterator<ReportGenerator> iterator = testStepTestCases.iterator(); iterator.hasNext();)
 			{
-				TestCase testCase = iterator.next();
-				testCase.generateReport(level+1);
+				ReportGenerator testStepTestCase = iterator.next();
+				testStepTestCase.generateReport(level+1);
 			}
 		}
 	}
