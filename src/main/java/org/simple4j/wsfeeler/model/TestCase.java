@@ -125,6 +125,8 @@ public class TestCase implements Callable<Boolean>, ReportGenerator
 	 */
 	public boolean execute() throws IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, InterruptedException, ExecutionException
 	{
+		try
+		{
 		logger.info("Inside execute:{}", name);
 		if(!this.testSuite.canExecute(name))
 		{
@@ -194,6 +196,13 @@ public class TestCase implements Callable<Boolean>, ReportGenerator
 //			}
 //		}
 		return success;
+		}
+		catch(Throwable t)
+		{
+			success = false;
+			logger.error("Error while executing test case {}",  this, t);
+			return success;
+		}
 	}
 
 	private void executeTestCases(List<File> sortedTestCaseDirectories)
@@ -261,7 +270,17 @@ public class TestCase implements Callable<Boolean>, ReportGenerator
         {
 			TestStep step = TestStep.getInstance(typeOfStep, testStepInputVariables, testStepFile, this, this.testSuite);
 			this.executedTestSteps.put(step.shortName, step);
-        	boolean ret = step.execute();
+			boolean ret = false;
+			try
+			{
+        		ret = step.execute();
+			}
+			catch ( Throwable t)
+			{
+				step.setSuccess(false);
+				ret = false;
+				logger.error("Error while executing step {}",  step, t);
+			}
         	
 			if(this.testStepTestCases == null)
 				this.testStepTestCases = new LinkedList<ReportGenerator>();
