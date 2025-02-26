@@ -402,7 +402,7 @@ public class TestCase implements Callable<Boolean>, ReportGenerator
 			if(key.startsWith("TESTSUITE/"))
 			{
 				logger.info("Starts with TESTSUITE/");
-				key = key.substring(10);
+//				key = key.substring(10);
 				return this.testSuite.getTestSuiteVariableValue(key);
 			}
 			else

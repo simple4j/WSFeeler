@@ -209,6 +209,7 @@ public class TestSuite
 		this.initPath();
 		this.initVariables();
 		this.loadCustomVariables();
+		logger.debug("Testcase variables after loading custom variables {}", this.testSuiteVariables);
 		this.loadIncludesExcludes();
 		this.loadConnectors();
 		File testcasesDir = new File(this.testSuiteDirectory,"/testcases");
@@ -327,6 +328,8 @@ public class TestSuite
 	{
 		if(this.testSuiteVariables == null)
 			return null;
+		
+		logger.debug("getTestSuiteVariableValue {}", variableName);
 		
 //		variableName = variableName.replaceFirst("(TESTSUITE.)", "");
 		return this.testSuiteVariables.get(variableName);
