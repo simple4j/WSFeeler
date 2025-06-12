@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.simple4j.wsclient.caller.Caller;
 import org.simple4j.wsclient.caller.CallerFactory;
+import org.simple4j.wsclient.caller.ICaller;
 import org.simple4j.wsclient.exception.SystemException;
 import org.simple4j.wsclient.util.CollectionsPathRetreiver;
 import org.simple4j.wsfeeler.core.ConfigLoader;
@@ -37,7 +37,7 @@ public class WSTestStep extends TestStep
 		logger.info("Entering execute:{}", this.name);
 		try
 		{
-			Caller caller = null;
+			ICaller caller = null;
 	    	Object callerBeanIdObj = this.testStepVariables.get("callerBeanId");
 	    	if(callerBeanIdObj != null)
 	    	{
@@ -182,10 +182,10 @@ public class WSTestStep extends TestStep
 		}
 	}
 
-	private Caller getCaller(String callerBeanId)
+	private ICaller getCaller(String callerBeanId)
 	{
 		ApplicationContext ac = this.testSuite.getConnectorsApplicationContext();
-		return ac.getBean(callerBeanId, Caller.class);
+		return ac.getBean(callerBeanId, ICaller.class);
 	}
 
 	private CallerFactory getCallerFactory(String callerFactoryBeanId)
