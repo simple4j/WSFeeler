@@ -24,4 +24,7 @@
 		<property name="socketTimeOutMillis" value="1000"></property>
 	</bean>
  
+	<bean id="jsonConfigParser" class="org.simple4j.wsclient.caller.factory.JSONConfigParser">
+	</bean>
+
 </beans>

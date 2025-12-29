@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.simple4j.wsclient.caller.CallerFactory;
+import org.simple4j.wsclient.caller.factory.CallerFactory;
 import org.simple4j.wsclient.caller.ICaller;
 import org.simple4j.wsclient.exception.SystemException;
 import org.simple4j.wsclient.util.CollectionsPathRetreiver;

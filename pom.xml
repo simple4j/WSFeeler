@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.simple4j</groupId>
 	<artifactId>WSFeeler</artifactId>
-	<version>25.06.30.1-SNAPSHOT</version>
+	<version>25.12.29.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>WSFeeler</name>
 	<url>https://github.com/simple4j/WSFeeler</url>
@@ -30,23 +30,23 @@
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<url>https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots</url>
 		</snapshotRepository>
 		<repository>
 			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.simple4j</groupId>
 			<artifactId>WSClient</artifactId>
-			<version>25.06.30.0</version>
+			<version>25.12.29.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>6.1.13</version>
+			<version>6.2.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<version>6.1.13</version>
+			<version>6.2.7</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -112,7 +112,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
-			<version>6.1.13</version>
+			<version>6.2.7</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -233,7 +233,7 @@
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
-					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<nexusUrl>https://ossrh-staging-api.central.sonatype.com</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
 				</configuration>
 				  <dependencies>
