@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>org.simple4j</groupId>
 			<artifactId>WSClient</artifactId>
-			<version>25.12.29.2</version>
+			<version>25.12.29.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
