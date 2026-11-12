@@ -55,7 +55,7 @@ public class TestCaseExecutor
 	 */
 	public List<TestCase> execute(File parentTestCasesDir, TestSuite testSuite)
 	{
-		logger.info("Entering execute {}", parentTestCasesDir);
+		logger.info("~~~~~~~~~~~~~~~~~~~ Start execution of case:{}", parentTestCasesDir);
 		if(!parentTestCasesDir.exists() || !parentTestCasesDir.isDirectory())
 		{
 			throw new RuntimeException("Path does not exist or is not a directory:"+parentTestCasesDir);
@@ -75,7 +75,7 @@ public class TestCaseExecutor
 		}
 		finally
 		{
-			logger.info("Exiting execute {}", parentTestCasesDir);
+			logger.info("~~~~~~~~~~~~~~~~~~~ End execution of case:{}", parentTestCasesDir);
 		}
 	}
 

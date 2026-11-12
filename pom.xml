@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.simple4j</groupId>
 	<artifactId>WSFeeler</artifactId>
-	<version>25.12.29.4-SNAPSHOT</version>
+	<version>26.11.09.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>WSFeeler</name>
 	<url>https://github.com/simple4j/WSFeeler</url>
@@ -41,12 +41,12 @@
 		<dependency>
 			<groupId>org.simple4j</groupId>
 			<artifactId>WSClient</artifactId>
-			<version>25.12.29.4</version>
+			<version>26.11.09.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>6.2.7</version>
+			<version>7.0.10</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<version>6.2.7</version>
+			<version>7.0.10</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -112,7 +112,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
-			<version>6.2.7</version>
+			<version>7.0.10</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -262,7 +262,6 @@
 	The DB data can be asserted using POJOAsHTTP class herarchy. Addon libraries SparkJavaPOJOAsHTTP and JavalinPOJOAsHTTP are created.
 	</description>
 	<properties>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.release>25</maven.compiler.release>
 	</properties>
 </project>

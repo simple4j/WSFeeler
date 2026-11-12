@@ -258,35 +258,43 @@ public class TestCase implements Callable<Boolean>, ReportGenerator
 
     private boolean executeTestStep(File testStepFile) throws FileNotFoundException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException
 	{
-		Map<String, Object> testStepInputVariables = ConfigLoader.loadVariables(testStepFile, this);
-		logger.info("Teststep input variables:{}", testStepInputVariables);
-        String typeOfStep = (String) testStepInputVariables.get("TypeOfStep");
-        if(typeOfStep == null || typeOfStep.trim().length() == 0)
-        {
-            logger.error("TypeOfStep missing in file:"+testStepFile);
-    		return false;
-        }
-        else
-        {
-			TestStep step = TestStep.getInstance(typeOfStep, testStepInputVariables, testStepFile, this, this.testSuite);
-			this.executedTestSteps.put(step.shortName, step);
-			boolean ret = false;
-			try
-			{
-        		ret = step.execute();
-			}
-			catch ( Throwable t)
-			{
-				step.setSuccess(false);
-				ret = false;
-				logger.error("Error while executing step {}",  step, t);
-			}
-        	
-			if(this.testStepTestCases == null)
-				this.testStepTestCases = new LinkedList<ReportGenerator>();
-			this.testStepTestCases.add(step);
-			return ret;
-        }
+    	try
+    	{
+    		logger.info("~~~~~~~~~~~~~~~~~~~ Start execution of step:{}", testStepFile);
+			Map<String, Object> testStepInputVariables = ConfigLoader.loadVariables(testStepFile, this);
+			logger.info("Teststep input variables:{}", testStepInputVariables);
+	        String typeOfStep = (String) testStepInputVariables.get("TypeOfStep");
+	        if(typeOfStep == null || typeOfStep.trim().length() == 0)
+	        {
+	            logger.error("TypeOfStep missing in file:"+testStepFile);
+	    		return false;
+	        }
+	        else
+	        {
+				TestStep step = TestStep.getInstance(typeOfStep, testStepInputVariables, testStepFile, this, this.testSuite);
+				this.executedTestSteps.put(step.shortName, step);
+				boolean ret = false;
+				try
+				{
+	        		ret = step.execute();
+				}
+				catch ( Throwable t)
+				{
+					step.setSuccess(false);
+					ret = false;
+					logger.error("Error while executing step {}",  step, t);
+				}
+	        	
+				if(this.testStepTestCases == null)
+					this.testStepTestCases = new LinkedList<ReportGenerator>();
+				this.testStepTestCases.add(step);
+				return ret;
+	        }
+    	}
+    	finally
+    	{
+    		logger.info("~~~~~~~~~~~~~~~~~~~ End execution of step:{}", testStepFile);
+    	}
 	}
 
 	private List<File> sortFiles(File[] testcaseDirs) {
